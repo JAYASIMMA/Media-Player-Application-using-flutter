@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import '../models/media_item.dart';
+import 'package:flutter_media_metadata/flutter_media_metadata.dart';
+import 'dart:typed_data';
 
 class MediaService {
   List<MediaItem> videos = [];
@@ -28,9 +30,6 @@ class MediaService {
     if (Platform.isAndroid) {
       await _loadAndroidMedia();
     }
-    
-    // Add sample data for demonstration
-    _addSampleData();
   }
 
   Future<void> _loadAndroidMedia() async {
@@ -52,10 +51,13 @@ class MediaService {
 
   Future<void> _scanDirectory(Directory dir) async {
     try {
-      await for (final entity in dir.list(recursive: true, followLinks: false)) {
+      await for (final entity in dir.list(
+        recursive: true,
+        followLinks: false,
+      )) {
         if (entity is File) {
           final ext = path.extension(entity.path).toLowerCase();
-          
+
           if (_isVideoFile(ext)) {
             videos.add(await _createMediaItem(entity, isVideo: true));
           } else if (_isAudioFile(ext)) {
@@ -69,11 +71,30 @@ class MediaService {
   }
 
   bool _isVideoFile(String ext) {
-    return ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.3gp', '.webm', '.m4v'].contains(ext);
+    return [
+      '.mp4',
+      '.mkv',
+      '.avi',
+      '.mov',
+      '.wmv',
+      '.flv',
+      '.3gp',
+      '.webm',
+      '.m4v',
+    ].contains(ext);
   }
 
   bool _isAudioFile(String ext) {
-    return ['.mp3', '.m4a', '.wav', '.flac', '.aac', '.ogg', '.wma', '.opus'].contains(ext);
+    return [
+      '.mp3',
+      '.m4a',
+      '.wav',
+      '.flac',
+      '.aac',
+      '.ogg',
+      '.wma',
+      '.opus',
+    ].contains(ext);
   }
 
   Future<MediaItem> _createMediaItem(File file, {required bool isVideo}) async {
@@ -81,13 +102,31 @@ class MediaService {
     final fileName = path.basenameWithoutExtension(file.path);
     final fileSize = _formatFileSize(stat.size);
 
+    Uint8List? albumArt;
+    String? artist;
+    String? album;
+
+    if (!isVideo) {
+      try {
+        final metadata = await MetadataRetriever.fromFile(file);
+        albumArt = metadata.albumArt;
+        artist = metadata.trackArtistNames?.isNotEmpty == true
+            ? metadata.trackArtistNames!.first
+            : null;
+        album = metadata.albumName;
+      } catch (e) {
+        print('Error extracting metadata for ${file.path}: $e');
+      }
+    }
+
     return MediaItem(
       name: fileName,
       path: file.path,
       duration: '00:00',
       size: fileSize,
-      artist: isVideo ? null : 'Unknown Artist',
-      album: isVideo ? null : 'Unknown Album',
+      artist: artist ?? (isVideo ? null : 'Unknown Artist'),
+      album: album ?? (isVideo ? null : 'Unknown Album'),
+      albumArt: albumArt,
     );
   }
 
@@ -100,83 +139,9 @@ class MediaService {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
-  void _addSampleData() {
-    // Sample videos
-    videos.addAll([
-      MediaItem(
-        name: 'Sample Video 1',
-        path: '/sample/path/video1.mp4',
-        duration: '05:24',
-        size: '125.5 MB',
-      ),
-      MediaItem(
-        name: 'Movie Trailer',
-        path: '/sample/path/trailer.mp4',
-        duration: '02:30',
-        size: '85.3 MB',
-      ),
-      MediaItem(
-        name: 'Tutorial Video',
-        path: '/sample/path/tutorial.mkv',
-        duration: '18:42',
-        size: '512.8 MB',
-      ),
-      MediaItem(
-        name: 'Vacation 2024',
-        path: '/sample/path/vacation.mp4',
-        duration: '12:15',
-        size: '256.3 MB',
-      ),
-    ]);
-
-    // Sample music
-    music.addAll([
-      MediaItem(
-        name: 'Summer Breeze',
-        path: '/sample/path/summer.mp3',
-        duration: '03:45',
-        size: '5.2 MB',
-        artist: 'The Artists',
-        album: 'Summer Collection',
-      ),
-      MediaItem(
-        name: 'Night Drive',
-        path: '/sample/path/night.mp3',
-        duration: '04:12',
-        size: '6.1 MB',
-        artist: 'Midnight Band',
-        album: 'City Lights',
-      ),
-      MediaItem(
-        name: 'Acoustic Dreams',
-        path: '/sample/path/acoustic.mp3',
-        duration: '03:28',
-        size: '4.8 MB',
-        artist: 'Guitar Masters',
-        album: 'Unplugged Sessions',
-      ),
-      MediaItem(
-        name: 'Electric Soul',
-        path: '/sample/path/electric.mp3',
-        duration: '05:15',
-        size: '7.3 MB',
-        artist: 'DJ Beats',
-        album: 'Electronic Vibes',
-      ),
-      MediaItem(
-        name: 'Classical Melody',
-        path: '/sample/path/classical.mp3',
-        duration: '06:32',
-        size: '9.1 MB',
-        artist: 'Orchestra',
-        album: 'Timeless Classics',
-      ),
-    ]);
-  }
-
   List<Map<String, dynamic>> getFolders() {
     final Map<String, int> folderCounts = {};
-    
+
     for (final video in videos) {
       final folder = path.dirname(video.path);
       final folderName = path.basename(folder);
@@ -184,7 +149,7 @@ class MediaService {
         folderCounts[folder] = (folderCounts[folder] ?? 0) + 1;
       }
     }
-    
+
     for (final audio in music) {
       final folder = path.dirname(audio.path);
       final folderName = path.basename(folder);
@@ -194,11 +159,13 @@ class MediaService {
     }
 
     return folderCounts.entries
-        .map((e) => {
-              'name': path.basename(e.key),
-              'path': e.key,
-              'count': e.value,
-            })
+        .map(
+          (e) => {
+            'name': path.basename(e.key),
+            'path': e.key,
+            'count': e.value,
+          },
+        )
         .toList();
   }
 }
