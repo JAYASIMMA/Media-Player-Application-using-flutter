@@ -39,7 +39,7 @@ dependencies:
   permission_handler: ^12.0.1
   path: ^1.9.1
   provider: ^6.1.5+1
-  metadata_god: 1.1.0
+  audiotags: ^1.4.5
 
 dev_dependencies:
   flutter_test:

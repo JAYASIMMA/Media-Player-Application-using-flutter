@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import '../models/media_item.dart';
-import 'package:metadata_god/metadata_god.dart';
+import 'package:audiotags/audiotags.dart';
 import 'dart:typed_data';
 
 class MediaService {
@@ -12,10 +12,14 @@ class MediaService {
 
   Future<bool> requestPermissions() async {
     if (Platform.isAndroid) {
+      if (await Permission.manageExternalStorage.request().isGranted) {
+        return true;
+      }
+
       Map<Permission, PermissionStatus> statuses = await [
+        Permission.storage,
         Permission.videos,
         Permission.audio,
-        Permission.storage,
       ].request();
 
       return statuses.values.any((status) => status.isGranted);
@@ -33,29 +37,32 @@ class MediaService {
   }
 
   Future<void> _loadAndroidMedia() async {
-    final directories = [
-      '/storage/emulated/0/DCIM',
-      '/storage/emulated/0/Movies',
-      '/storage/emulated/0/Download',
-      '/storage/emulated/0/Music',
-      '/storage/emulated/0/Podcasts',
-    ];
-
-    for (final dirPath in directories) {
-      final dir = Directory(dirPath);
-      if (await dir.exists()) {
-        await _scanDirectory(dir);
-      }
+    final rootDir = Directory('/storage/emulated/0');
+    if (await rootDir.exists()) {
+      await _scanDirectory(rootDir);
     }
+  }
+
+  bool _shouldSkipDirectory(String path) {
+    final basename = path.split('/').last;
+    return basename.startsWith('.') ||
+        basename == 'Android' ||
+        basename == 'data' ||
+        basename == 'obb';
   }
 
   Future<void> _scanDirectory(Directory dir) async {
     try {
+      // Skip system folders that might cause permission issues or are irrelevant
+      if (_shouldSkipDirectory(dir.path)) return;
+
       await for (final entity in dir.list(
-        recursive: true,
+        recursive: false,
         followLinks: false,
       )) {
-        if (entity is File) {
+        if (entity is Directory) {
+          await _scanDirectory(entity);
+        } else if (entity is File) {
           final ext = path.extension(entity.path).toLowerCase();
 
           if (_isVideoFile(ext)) {
@@ -108,10 +115,12 @@ class MediaService {
 
     if (!isVideo) {
       try {
-        final metadata = await MetadataGod.getMetadata(file.path);
-        albumArt = metadata?.picture?.data;
-        artist = metadata?.artist;
-        album = metadata?.album;
+        final tag = await AudioTags.read(file.path);
+        if (tag != null) {
+          albumArt = tag.pictures.isNotEmpty ? tag.pictures.first.bytes : null;
+          artist = tag.trackArtist;
+          album = tag.album;
+        }
       } catch (e) {
         print('Error extracting metadata for ${file.path}: $e');
       }
