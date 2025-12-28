@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import '../models/media_item.dart';
 import 'package:audiotags/audiotags.dart';
+import 'package:flutter_video_info/flutter_video_info.dart';
 import 'dart:typed_data';
 
 class MediaService {
@@ -106,7 +107,20 @@ class MediaService {
     String? artist;
     String? album;
 
-    if (!isVideo) {
+    String formattedDuration = '00:00';
+    final videoInfo = FlutterVideoInfo();
+
+    if (isVideo) {
+      try {
+        var info = await videoInfo.getVideoInfo(file.path);
+        if (info?.duration != null) {
+          // duration from flutter_video_info is in milliseconds
+          formattedDuration = _formatDuration(info!.duration!.toInt());
+        }
+      } catch (e) {
+        print('Error extracting video metadata for ${file.path}: $e');
+      }
+    } else {
       try {
         final tag = await AudioTags.read(file.path);
         // The first picture is usually the cover art
@@ -115,6 +129,10 @@ class MediaService {
         }
         artist = tag?.trackArtist;
         album = tag?.album;
+        if (tag?.duration != null) {
+          // duration from audiotags is usually in seconds
+          formattedDuration = _formatDuration(tag!.duration! * 1000);
+        }
       } catch (e) {
         print('Error extracting metadata for ${file.path}: $e');
       }
@@ -123,12 +141,25 @@ class MediaService {
     return MediaItem(
       name: fileName,
       path: file.path,
-      duration: '00:00',
+      duration: formattedDuration,
       size: fileSize,
       artist: artist ?? (isVideo ? null : 'Unknown Artist'),
       album: album ?? (isVideo ? null : 'Unknown Album'),
       albumArt: albumArt,
     );
+  }
+
+  String _formatDuration(int milliseconds) {
+    if (milliseconds <= 0) return '00:00';
+    final duration = Duration(milliseconds: milliseconds);
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    final twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    if (duration.inHours > 0) {
+      return '${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds';
+    } else {
+      return '$twoDigitMinutes:$twoDigitSeconds';
+    }
   }
 
   String _formatFileSize(int bytes) {
