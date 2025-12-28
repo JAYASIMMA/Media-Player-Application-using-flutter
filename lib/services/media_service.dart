@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import '../models/media_item.dart';
-import 'package:flutter_media_metadata/flutter_media_metadata.dart';
+import 'package:metadata_god/metadata_god.dart';
 import 'dart:typed_data';
 
 class MediaService {
@@ -108,12 +108,10 @@ class MediaService {
 
     if (!isVideo) {
       try {
-        final metadata = await MetadataRetriever.fromFile(file);
-        albumArt = metadata.albumArt;
-        artist = metadata.trackArtistNames?.isNotEmpty == true
-            ? metadata.trackArtistNames!.first
-            : null;
-        album = metadata.albumName;
+        final metadata = await MetadataGod.getMetadata(file.path);
+        albumArt = metadata?.picture?.data;
+        artist = metadata?.artist;
+        album = metadata?.album;
       } catch (e) {
         print('Error extracting metadata for ${file.path}: $e');
       }
