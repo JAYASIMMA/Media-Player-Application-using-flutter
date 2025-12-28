@@ -1,27 +1,24 @@
 // Save this in: lib/pages/home_page.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'videos_page.dart';
 import 'music_page.dart';
 import 'folders_page.dart';
+import 'settings_page.dart';
 import '../../models/media_item.dart';
 import '../../services/media_service.dart';
+import '../../services/theme_provider.dart';
 
 class HomePage extends StatefulWidget {
-  final VoidCallback onThemeToggle;
-  final ThemeMode currentTheme;
-
-  const HomePage({
-    Key? key,
-    required this.onThemeToggle,
-    required this.currentTheme,
-  }) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final MediaService _mediaService = MediaService();
   bool _isLoading = false;
@@ -48,7 +45,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final isDark = widget.currentTheme == ThemeMode.dark;
+    // Access theme provider
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDark = themeProvider.isDarkMode;
 
     return Scaffold(
       appBar: AppBar(
@@ -65,12 +64,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           IconButton(
             icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-            onPressed: widget.onThemeToggle,
+            onPressed: () {
+              themeProvider.toggleTheme(isDark);
+            },
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'refresh') {
                 _requestPermissionsAndLoadMedia();
+              } else if (value == 'settings') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
               }
             },
             itemBuilder: (context) => [
