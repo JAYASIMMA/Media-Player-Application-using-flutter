@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import '../models/media_item.dart';
-import 'package:metadata_god/metadata_god.dart';
+import 'package:audiotags/audiotags.dart';
 import 'dart:typed_data';
 
 class MediaService {
@@ -108,10 +108,13 @@ class MediaService {
 
     if (!isVideo) {
       try {
-        final metadata = await MetadataGod.getMetadata(file.path);
-        albumArt = metadata?.picture?.data;
-        artist = metadata?.artist;
-        album = metadata?.album;
+        final tag = await AudioTags.read(file.path);
+        // The first picture is usually the cover art
+        if (tag?.pictures.isNotEmpty == true) {
+          albumArt = tag!.pictures.first.bytes;
+        }
+        artist = tag?.trackArtist;
+        album = tag?.album;
       } catch (e) {
         print('Error extracting metadata for ${file.path}: $e');
       }

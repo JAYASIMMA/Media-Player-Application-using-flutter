@@ -3,11 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'pages/home_page.dart';
 import 'services/theme_provider.dart';
-import 'package:metadata_god/metadata_god.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await MetadataGod.initialize();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(
     ChangeNotifierProvider(
