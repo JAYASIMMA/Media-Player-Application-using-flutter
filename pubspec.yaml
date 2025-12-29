@@ -47,6 +47,7 @@ dependencies:
   video_thumbnail: ^0.5.3
   shared_preferences: ^2.2.2
   path_provider: ^2.1.2
+  audio_service: ^0.18.15
 
 dev_dependencies:
   flutter_test:
