@@ -13,6 +13,16 @@ class MediaService {
 
   Future<bool> requestPermissions() async {
     if (Platform.isAndroid) {
+      // For Android 11+ (API 30+)
+      if (await Permission.manageExternalStorage.status.isDenied) {
+        await Permission.manageExternalStorage.request();
+      }
+
+      if (await Permission.manageExternalStorage.status.isGranted) {
+        return true;
+      }
+
+      // For older Android versions
       Map<Permission, PermissionStatus> statuses = await [
         Permission.videos,
         Permission.audio,
