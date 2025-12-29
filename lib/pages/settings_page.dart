@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/theme_provider.dart';
 import '../services/settings_provider.dart';
 import '../services/audio_provider.dart';
+import 'about_us_page.dart';
+import 'privacy_policy_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -49,6 +51,41 @@ class SettingsPage extends StatelessWidget {
                     ],
                   );
                 },
+              ),
+              const Divider(height: 32),
+              // Information Section
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  'INFORMATION',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.secondary,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              ListTile(
+                title: const Text('About Us'),
+                leading: const Icon(Icons.info_outline),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AboutUsPage()),
+                ),
+              ),
+              ListTile(
+                title: const Text('Privacy Policy'),
+                leading: const Icon(Icons.privacy_tip_outlined),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()),
+                ),
               ),
             ],
           );
