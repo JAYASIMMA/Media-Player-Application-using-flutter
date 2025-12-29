@@ -108,35 +108,71 @@ class MediaService {
       '/storage/emulated/0/Music',
       '/storage/emulated/0/Podcasts',
       '/storage/emulated/0/Telegram',
-      '/storage/emulated/0/Android/media/org.telegram.messenger/Telegram', // Newer Android versions
+      '/storage/emulated/0/Android/media/org.telegram.messenger/Telegram',
     ];
 
+    List<File> allFiles = [];
+
+    // Phase 1: Rapid file collection
     for (final dirPath in directories) {
       final dir = Directory(dirPath);
       if (await dir.exists()) {
-        await _scanDirectory(dir);
+        await _collectFiles(dir, allFiles);
       }
     }
+
+    // Phase 2: Processing in batches
+    List<File> videoFiles = [];
+    List<File> audioFiles = [];
+
+    for (final file in allFiles) {
+      final ext = path.extension(file.path).toLowerCase();
+      if (_isVideoFile(ext)) {
+        videoFiles.add(file);
+      } else if (_isAudioFile(ext)) {
+        audioFiles.add(file);
+      }
+    }
+
+    // Process concurrently (batches of 10 to avoid OOM or Channel overloading)
+    // We update the main lists as we go or at the end.
+    // Ideally at the end to prevent partial state, but for speed perception, maybe incrementally?
+    // Let's do batches and add them.
+
+    await _processBatch(videoFiles, true);
+    await _processBatch(audioFiles, false);
   }
 
-  Future<void> _scanDirectory(Directory dir) async {
+  Future<void> _collectFiles(Directory dir, List<File> collector) async {
     try {
       await for (final entity in dir.list(
         recursive: true,
         followLinks: false,
       )) {
         if (entity is File) {
-          final ext = path.extension(entity.path).toLowerCase();
-
-          if (_isVideoFile(ext)) {
-            videos.add(await _createMediaItem(entity, isVideo: true));
-          } else if (_isAudioFile(ext)) {
-            music.add(await _createMediaItem(entity, isVideo: false));
-          }
+          collector.add(entity);
         }
       }
     } catch (e) {
-      print('Error scanning directory ${dir.path}: $e');
+      print('Error collecting files from ${dir.path}: $e');
+    }
+  }
+
+  Future<void> _processBatch(List<File> files, bool isVideo) async {
+    const int batchSize = 10;
+    for (var i = 0; i < files.length; i += batchSize) {
+      final end = (i + batchSize < files.length) ? i + batchSize : files.length;
+      final batch = files.sublist(i, end);
+
+      final results = await Future.wait(
+        batch.map((file) => _createMediaItem(file, isVideo: isVideo)),
+      );
+
+      if (isVideo) {
+        videos.addAll(results);
+      } else {
+        music.addAll(results);
+      }
     }
   }
 

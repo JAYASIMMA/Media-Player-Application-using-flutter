@@ -39,6 +39,17 @@ class _HomePageState extends State<HomePage> {
     setState(() => _isLoading = true);
     await _mediaService.requestPermissions();
     await _mediaService.loadMedia();
+
+    if (mounted) {
+      final playlistProv = Provider.of<PlaylistProv.PlaylistProvider>(
+        context,
+        listen: false,
+      );
+      // Combine music and videos for syncing
+      final allMedia = [..._mediaService.music, ..._mediaService.videos];
+      playlistProv.syncWithLibrary(allMedia);
+    }
+
     _albums = _mediaService.getAlbums();
     setState(() => _isLoading = false);
   }
