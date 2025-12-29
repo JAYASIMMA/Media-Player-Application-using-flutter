@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/media_service.dart';
+import 'folder_content_page.dart';
 
 class FoldersPage extends StatelessWidget {
   final MediaService mediaService;
@@ -29,7 +30,8 @@ class FoldersPage extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: folders.length,
-      separatorBuilder: (context, index) => const Divider(height: 1, indent: 72),
+      separatorBuilder: (context, index) =>
+          const Divider(height: 1, indent: 72),
       itemBuilder: (context, index) {
         final folder = folders[index];
         final count = folder['count'] as int;
@@ -37,7 +39,10 @@ class FoldersPage extends StatelessWidget {
         final folderPath = folder['path'] as String;
 
         return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
           leading: Container(
             width: 56,
             height: 56,
@@ -71,8 +76,15 @@ class FoldersPage extends StatelessWidget {
           ),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Opening folder: $folderName')),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FolderContentPage(
+                  folderName: folderName,
+                  folderPath: folderPath,
+                  mediaService: mediaService,
+                ),
+              ),
             );
           },
         );

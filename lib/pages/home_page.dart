@@ -5,7 +5,7 @@ import '../models/media_item.dart';
 import '../services/media_service.dart';
 import '../services/theme_provider.dart';
 import '../widgets/album_card.dart';
-import '../widgets/clock_widget.dart';
+import '../widgets/playback_time_widget.dart';
 import '../widgets/nothing_widget_container.dart';
 import 'music_page.dart';
 import 'videos_page.dart';
@@ -54,6 +54,57 @@ class _HomePageState extends State<HomePage> {
                 slivers: [
                   const SliverPadding(padding: EdgeInsets.only(top: 24)),
 
+                  const SliverPadding(padding: EdgeInsets.only(top: 24)),
+
+                  // Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'NOTHING ',
+                                  style: GoogleFonts.ibmPlexSerif(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'PLAYER',
+                                  style: GoogleFonts.ibmPlexSerif(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w300,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 2,
+                            width: 60,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   // 1. Dashboard Grid (Top Section)
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -68,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                                 Expanded(
                                   flex: 2,
                                   child: NothingWidgetContainer(
-                                    child: const ClockWidget(),
+                                    child: const PlaybackTimeWidget(),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -237,12 +288,20 @@ class _HomePageState extends State<HomePage> {
                                                     const SettingsPage(),
                                               ),
                                             ),
-                                            child: const Center(
-                                              child: Text(
-                                                "SETTINGS",
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 1.5,
+                                            child: Center(
+                                              child: Center(
+                                                child: Text(
+                                                  "SETTINGS",
+                                                  style:
+                                                      GoogleFonts.ibmPlexSerif(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        letterSpacing: 1.5,
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodyLarge
+                                                            ?.color,
+                                                      ),
                                                 ),
                                               ),
                                             ),

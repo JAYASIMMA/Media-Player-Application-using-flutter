@@ -3,14 +3,20 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'pages/home_page.dart';
 import 'services/theme_provider.dart';
+import 'services/audio_provider.dart';
+import 'services/playlist_provider.dart';
 import 'themes/nothing_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AudioProvider()),
+        ChangeNotifierProvider(create: (_) => PlaylistProvider()),
+      ],
       child: const MediaPlayerApp(),
     ),
   );
