@@ -54,16 +54,14 @@ class _HomePageState extends State<HomePage> {
             ? const Center(child: CircularProgressIndicator())
             : CustomScrollView(
                 slivers: [
-                  const SliverPadding(padding: EdgeInsets.only(top: 24)),
-
-                  const SliverPadding(padding: EdgeInsets.only(top: 24)),
-
                   // Header
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
+                      padding: const EdgeInsets.only(
+                        left: 24,
+                        right: 24,
+                        top: 15,
+                        bottom: 10,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
