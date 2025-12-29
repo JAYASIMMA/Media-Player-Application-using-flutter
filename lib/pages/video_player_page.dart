@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:volume_controller/volume_controller.dart';
 import '../models/media_item.dart';
+import '../services/media_service.dart';
 
 class VideoPlayerPage extends StatefulWidget {
   final MediaItem video;
@@ -349,13 +350,38 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      IconButton(
+                      PopupMenuButton<String>(
                         icon: const Icon(
                           Icons.more_vert,
                           color: Colors.white,
                           size: 28,
                         ),
-                        onPressed: () {},
+                        onSelected: (value) async {
+                          if (value == 'set_thumbnail') {
+                            final position =
+                                _controller!.value.position.inMilliseconds;
+                            final service = MediaService();
+                            await service.updateThumbnail(
+                              widget.video.path,
+                              position,
+                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Thumbnail updated"),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<String>>[
+                              const PopupMenuItem<String>(
+                                value: 'set_thumbnail',
+                                child: Text('Set as Thumbnail'),
+                              ),
+                            ],
                       ),
                     ],
                   ),

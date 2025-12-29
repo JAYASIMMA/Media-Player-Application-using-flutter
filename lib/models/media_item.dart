@@ -31,4 +31,24 @@ class MediaItem {
 
   @override
   int get hashCode => path.hashCode;
+
+  MediaItem copyWith({
+    String? name,
+    String? path,
+    String? duration,
+    String? size,
+    Uint8List? albumArt,
+    String? artist,
+    String? album,
+  }) {
+    return MediaItem(
+      name: name ?? this.name,
+      path: path ?? this.path,
+      duration: duration ?? this.duration,
+      size: size ?? this.size,
+      albumArt: albumArt ?? this.albumArt,
+      artist: artist ?? this.artist,
+      album: album ?? this.album,
+    );
+  }
 }

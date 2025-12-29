@@ -7,10 +7,65 @@ import 'package:audiotags/audiotags.dart';
 import 'package:flutter_video_info/flutter_video_info.dart';
 import 'dart:typed_data';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 
 class MediaService {
   List<MediaItem> videos = [];
   List<MediaItem> music = [];
+
+  Map<String, String> _customThumbnails = {};
+
+  MediaService();
+
+  Future<void> _loadCustomThumbnails() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Keys format: "thumb_video_path" -> "thumbnail_file_path"
+    final keys = prefs.getKeys();
+    for (final key in keys) {
+      if (key.startsWith('thumb_')) {
+        final videoPath = key.substring(6); // Remove 'thumb_' prefix
+        final thumbPath = prefs.getString(key);
+        if (thumbPath != null) {
+          _customThumbnails[videoPath] = thumbPath;
+        }
+      }
+    }
+  }
+
+  Future<void> updateThumbnail(String videoPath, int timeMs) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final thumbFileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final thumbPath = path.join(appDir.path, thumbFileName);
+
+      final uint8list = await VideoThumbnail.thumbnailData(
+        video: videoPath,
+        imageFormat: ImageFormat.JPEG,
+        timeMs: timeMs,
+        maxWidth: 200,
+        quality: 50,
+      );
+
+      if (uint8list != null) {
+        final file = File(thumbPath);
+        await file.writeAsBytes(uint8list);
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('thumb_$videoPath', thumbPath);
+
+        _customThumbnails[videoPath] = thumbPath;
+
+        // Update in-memory list
+        final index = videos.indexWhere((v) => v.path == videoPath);
+        if (index != -1) {
+          videos[index] = videos[index].copyWith(albumArt: uint8list);
+        }
+      }
+    } catch (e) {
+      print('Error updating thumbnail: $e');
+    }
+  }
 
   Future<bool> requestPermissions() async {
     if (Platform.isAndroid) {
@@ -36,6 +91,7 @@ class MediaService {
   }
 
   Future<void> loadMedia() async {
+    await _loadCustomThumbnails();
     videos.clear();
     music.clear();
 
@@ -141,16 +197,36 @@ class MediaService {
       }
 
       // Generate Thumbnail
-      try {
-        final uint8list = await VideoThumbnail.thumbnailData(
-          video: file.path,
-          imageFormat: ImageFormat.JPEG,
-          maxWidth: 200, // Specify the width of the thumbnail
-          quality: 50,
-        );
-        albumArt = uint8list;
-      } catch (e) {
-        print('Error generating thumbnail for ${file.path}: $e');
+      if (_customThumbnails.containsKey(file.path)) {
+        try {
+          final thumbFile = File(_customThumbnails[file.path]!);
+          if (await thumbFile.exists()) {
+            albumArt = await thumbFile.readAsBytes();
+          } else {
+            // Fallback if custom file deleted
+            final uint8list = await VideoThumbnail.thumbnailData(
+              video: file.path,
+              imageFormat: ImageFormat.JPEG,
+              maxWidth: 200,
+              quality: 50,
+            );
+            albumArt = uint8list;
+          }
+        } catch (e) {
+          print("Error creating media item with custom thumb: $e");
+        }
+      } else {
+        try {
+          final uint8list = await VideoThumbnail.thumbnailData(
+            video: file.path,
+            imageFormat: ImageFormat.JPEG,
+            maxWidth: 200, // Specify the width of the thumbnail
+            quality: 50,
+          );
+          albumArt = uint8list;
+        } catch (e) {
+          print('Error generating thumbnail for ${file.path}: $e');
+        }
       }
     } else {
       try {
