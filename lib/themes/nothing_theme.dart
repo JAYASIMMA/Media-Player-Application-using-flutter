@@ -13,12 +13,53 @@ class NothingTheme {
   static const Color lightSurface = Color(0xFFF2F2F2); // Very light grey
 
   static TextTheme _buildTextTheme(TextTheme base, Color color) {
-    // Apply DotGothic16 to everything to ensure visibility of the "Nothing" style,
-    // as requested by the user. If they want legibility, we can revert body to Inter.
-    // Given "font is not correctly visible", applying it globally helps debug if it's a mapping issue.
-    return GoogleFonts.dotGothic16TextTheme(
+    // CMF / Nothing "Clean" Style:
+    // Headers/Titles -> Space Mono (Industrial, technical, readable)
+    // Body -> Inter (Clean, highly legible)
+
+    final baseTheme = GoogleFonts.interTextTheme(
       base,
     ).apply(bodyColor: color, displayColor: color);
+
+    return baseTheme.copyWith(
+      displayLarge: GoogleFonts.spaceMono(
+        textStyle: baseTheme.displayLarge,
+        fontWeight: FontWeight.bold,
+      ),
+      displayMedium: GoogleFonts.spaceMono(
+        textStyle: baseTheme.displayMedium,
+        fontWeight: FontWeight.bold,
+      ),
+      displaySmall: GoogleFonts.spaceMono(
+        textStyle: baseTheme.displaySmall,
+        fontWeight: FontWeight.bold,
+      ),
+      headlineLarge: GoogleFonts.spaceMono(
+        textStyle: baseTheme.headlineLarge,
+        fontWeight: FontWeight.bold,
+      ),
+      headlineMedium: GoogleFonts.spaceMono(
+        textStyle: baseTheme.headlineMedium,
+        fontWeight: FontWeight.bold,
+      ),
+      headlineSmall: GoogleFonts.spaceMono(
+        textStyle: baseTheme.headlineSmall,
+        fontWeight: FontWeight.bold,
+      ),
+      titleLarge: GoogleFonts.spaceMono(
+        textStyle: baseTheme.titleLarge,
+        fontWeight: FontWeight.bold,
+      ),
+      titleMedium: GoogleFonts.spaceMono(
+        textStyle: baseTheme.titleMedium,
+        fontWeight: FontWeight.bold,
+      ),
+      titleSmall: GoogleFonts.spaceMono(
+        textStyle: baseTheme.titleSmall,
+        fontWeight: FontWeight.bold,
+      ),
+      // Body text remains Inter for maximum clarity
+    );
   }
 
   static ThemeData get lightTheme {
@@ -49,10 +90,10 @@ class NothingTheme {
         elevation: 0,
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: GoogleFonts.dotGothic16(
+        titleTextStyle: GoogleFonts.spaceMono(
           color: nothingBlack,
           fontSize: 24,
-          fontWeight: FontWeight.w900, // Thick headers
+          fontWeight: FontWeight.bold,
           letterSpacing: -0.5,
         ),
         iconTheme: const IconThemeData(color: nothingBlack),
@@ -132,10 +173,10 @@ class NothingTheme {
         elevation: 0,
         centerTitle: false,
         systemOverlayStyle: SystemUiOverlayStyle.light,
-        titleTextStyle: GoogleFonts.dotGothic16(
+        titleTextStyle: GoogleFonts.spaceMono(
           color: nothingWhite,
           fontSize: 24,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.bold,
           letterSpacing: -0.5,
         ),
         iconTheme: const IconThemeData(color: nothingWhite),
