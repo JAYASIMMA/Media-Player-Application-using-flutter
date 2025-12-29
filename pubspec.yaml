@@ -45,6 +45,8 @@ dependencies:
   screen_brightness: ^2.1.7
   volume_controller: ^3.4.1
   video_thumbnail: ^0.5.3
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:

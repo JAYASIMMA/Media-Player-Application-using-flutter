@@ -2,11 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/playlist_provider.dart';
+import '../services/media_service.dart';
 import '../widgets/nothing_widget_container.dart';
-import 'audio_player_page.dart';
+import 'playlist_detail_page.dart';
 
-class PlaylistPage extends StatelessWidget {
-  const PlaylistPage({Key? key}) : super(key: key);
+class PlaylistPage extends StatefulWidget {
+  final MediaService?
+  mediaService; // Optional to prevent breaking if not passed immediately, but aimed to be required.
+
+  const PlaylistPage({Key? key, this.mediaService}) : super(key: key);
+
+  @override
+  State<PlaylistPage> createState() => _PlaylistPageState();
+}
+
+class _PlaylistPageState extends State<PlaylistPage> {
+  final Set<String> _selectedPlaylists = {};
+  bool _isSelectionMode = false;
 
   void _createPlaylist(BuildContext context) {
     showDialog(
@@ -60,7 +72,7 @@ class PlaylistPage extends StatelessWidget {
                 }
               },
               child: Text(
-                "create",
+                "CREATE",
                 style: GoogleFonts.spaceMono(
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.secondary,
@@ -71,6 +83,29 @@ class PlaylistPage extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _toggleSelection(String playlistName) {
+    setState(() {
+      if (_selectedPlaylists.contains(playlistName)) {
+        _selectedPlaylists.remove(playlistName);
+        if (_selectedPlaylists.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedPlaylists.add(playlistName);
+      }
+    });
+  }
+
+  void _deleteSelected(PlaylistProvider provider) {
+    for (final name in _selectedPlaylists) {
+      provider.deletePlaylist(name);
+    }
+    setState(() {
+      _selectedPlaylists.clear();
+      _isSelectionMode = false;
+    });
   }
 
   @override
@@ -94,37 +129,61 @@ class PlaylistPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'YOUR ',
-                              style: GoogleFonts.ibmPlexSerif(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                                letterSpacing: 2,
+                      if (_isSelectionMode)
+                        Text(
+                          '${_selectedPlaylists.length} Selected',
+                          style: GoogleFonts.ibmPlexSerif(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      else
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'YOUR ',
+                                style: GoogleFonts.ibmPlexSerif(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
+                                  letterSpacing: 2,
+                                ),
                               ),
-                            ),
-                            TextSpan(
-                              text: 'PLAYLISTS',
-                              style: GoogleFonts.ibmPlexSerif(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w300,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge?.color,
-                                letterSpacing: 2,
+                              TextSpan(
+                                text: 'PLAYLISTS',
+                                style: GoogleFonts.ibmPlexSerif(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w300,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
+                                  letterSpacing: 2,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.close),
+                      Row(
+                        children: [
+                          if (_isSelectionMode)
+                            IconButton(
+                              onPressed: () {
+                                final provider = Provider.of<PlaylistProvider>(
+                                  context,
+                                  listen: false,
+                                );
+                                _deleteSelected(provider);
+                              },
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                            ),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -193,27 +252,50 @@ class PlaylistPage extends StatelessWidget {
                       final songs = playlistProvider.getPlaylistSongs(
                         playlistName,
                       );
+                      final isSelected = _selectedPlaylists.contains(
+                        playlistName,
+                      );
 
                       return NothingWidgetContainer(
                         onTap: () {
-                          if (songs.isNotEmpty) {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AudioPlayerPage(
-                                  audio: songs.first,
-                                  playlist: songs,
-                                ),
-                              ),
-                            );
+                          if (_isSelectionMode) {
+                            _toggleSelection(playlistName);
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Playlist is empty'),
-                              ),
-                            );
+                            if (widget.mediaService != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PlaylistDetailPage(
+                                    playlistName: playlistName,
+                                    mediaService: widget.mediaService!,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Media Service not available"),
+                                ),
+                              );
+                            }
                           }
                         },
+                        onLongPress: () {
+                          setState(() {
+                            _isSelectionMode = true;
+                            _toggleSelection(playlistName);
+                          });
+                        },
+                        decoration: isSelected
+                            ? BoxDecoration(
+                                border: Border.all(
+                                  color: const Color(0xFFD71920),
+                                  width: 3,
+                                ), // Nothing Red
+                                borderRadius: BorderRadius.circular(24),
+                                color: Theme.of(context).cardColor,
+                              )
+                            : null,
                         child: Stack(
                           children: [
                             Column(
@@ -257,20 +339,23 @@ class PlaylistPage extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: () => playlistProvider.deletePlaylist(
-                                  playlistName,
-                                ),
-                                child: Icon(
-                                  Icons.remove_circle_outline,
-                                  size: 20,
-                                  color: Colors.grey.withOpacity(0.5),
+                            if (isSelected)
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFD71920),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
-                            ),
                           ],
                         ),
                       );

@@ -6,6 +6,8 @@ class NothingWidgetContainer extends StatelessWidget {
   final double? height;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final Decoration? decoration;
 
   const NothingWidgetContainer({
     Key? key,
@@ -14,6 +16,8 @@ class NothingWidgetContainer extends StatelessWidget {
     this.height,
     this.padding = const EdgeInsets.all(16),
     this.onTap,
+    this.onLongPress,
+    this.decoration,
   }) : super(key: key);
 
   @override
@@ -22,21 +26,24 @@ class NothingWidgetContainer extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         width: width,
         height: height,
         padding: padding,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE),
-          borderRadius: BorderRadius.circular(32),
-          // Subtle border for definition
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.black.withOpacity(0.05),
-            width: 1,
-          ),
-        ),
+        decoration:
+            decoration ??
+            BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE),
+              borderRadius: BorderRadius.circular(32),
+              // Subtle border for definition
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withOpacity(0.05)
+                    : Colors.black.withOpacity(0.05),
+                width: 1,
+              ),
+            ),
         child: child,
       ),
     );
