@@ -6,6 +6,7 @@ import '../models/media_item.dart';
 import 'package:audiotags/audiotags.dart';
 import 'package:flutter_video_info/flutter_video_info.dart';
 import 'dart:typed_data';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class MediaService {
   List<MediaItem> videos = [];
@@ -94,6 +95,12 @@ class MediaService {
       '.3gp',
       '.webm',
       '.m4v',
+      '.mpeg',
+      '.mpg',
+      '.m2ts',
+      '.ts',
+      '.qt',
+      '.m4p',
     ].contains(ext);
   }
 
@@ -131,6 +138,19 @@ class MediaService {
         }
       } catch (e) {
         print('Error extracting video metadata for ${file.path}: $e');
+      }
+
+      // Generate Thumbnail
+      try {
+        final uint8list = await VideoThumbnail.thumbnailData(
+          video: file.path,
+          imageFormat: ImageFormat.JPEG,
+          maxWidth: 200, // Specify the width of the thumbnail
+          quality: 50,
+        );
+        albumArt = uint8list;
+      } catch (e) {
+        print('Error generating thumbnail for ${file.path}: $e');
       }
     } else {
       try {

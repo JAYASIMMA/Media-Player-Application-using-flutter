@@ -152,8 +152,8 @@ class _VideosPageState extends State<VideosPage> {
             child: video.thumbnail != null
                 ? Image.memory(video.thumbnail!, fit: BoxFit.cover)
                 : Container(
-                    color: Colors.grey[300],
-                    child: Icon(Icons.movie, size: 40, color: Colors.grey[600]),
+                    color: Colors.black,
+                    child: Icon(Icons.movie, size: 40, color: Colors.grey[800]),
                   ),
           ),
           Positioned(top: 8, right: 8, child: _buildTag()),
@@ -201,11 +201,11 @@ class _VideosPageState extends State<VideosPage> {
                   child: video.thumbnail != null
                       ? Image.memory(video.thumbnail!, fit: BoxFit.cover)
                       : Container(
-                          color: Colors.grey[300],
+                          color: Colors.black,
                           child: Icon(
                             Icons.movie,
                             size: 60,
-                            color: Colors.grey[600],
+                            color: Colors.grey[800],
                           ),
                         ),
                 ),
@@ -262,7 +262,14 @@ class _VideosPageState extends State<VideosPage> {
               borderRadius: BorderRadius.circular(8),
               child: video.thumbnail != null
                   ? Image.memory(video.thumbnail!, fit: BoxFit.cover)
-                  : Icon(Icons.movie, size: 30, color: Colors.grey[600]),
+                  : Container(
+                      color: Colors.black,
+                      child: Icon(
+                        Icons.movie,
+                        size: 30,
+                        color: Colors.grey[800],
+                      ),
+                    ),
             ),
           ),
           Positioned(top: 4, right: 4, child: _buildTag()),
