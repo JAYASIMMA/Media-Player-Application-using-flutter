@@ -16,6 +16,7 @@ import 'settings_page.dart';
 import 'playlist_page.dart';
 import 'audio_player_page.dart';
 import 'favorites_detail_page.dart';
+import 'album_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -522,34 +523,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showAlbumDetails(BuildContext context, Map<String, dynamic> album) {
-    // Navigate to a temporary simple list view for the album
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: Text(album['name'])),
-          body: ListView.builder(
-            itemCount: album['songs'].length,
-            itemBuilder: (context, index) {
-              final MediaItem song = album['songs'][index];
-              return ListTile(
-                leading: const Icon(Icons.music_note),
-                title: Text(song.name),
-                subtitle: Text(song.artist ?? 'Unknown'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AudioPlayerPage(
-                        audio: song,
-                        playlist: List<MediaItem>.from(album['songs']),
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
+        builder: (context) => AlbumDetailPage(
+          albumName: album['name'],
+          songs: List<MediaItem>.from(album['songs']),
         ),
       ),
     );

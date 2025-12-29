@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/playlist_provider.dart';
+import '../services/settings_provider.dart';
 import '../models/media_item.dart';
 import '../pages/audio_player_page.dart';
 
@@ -13,10 +14,10 @@ class FavoritesDetailPage extends StatefulWidget {
 }
 
 class _FavoritesDetailPageState extends State<FavoritesDetailPage> {
-  bool _isGridView = false;
-
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
+
     return Consumer<PlaylistProvider>(
       builder: (context, playlistProvider, child) {
         final favorites = playlistProvider.favorites;
@@ -35,11 +36,11 @@ class _FavoritesDetailPageState extends State<FavoritesDetailPage> {
             ),
             actions: [
               IconButton(
-                icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+                icon: Icon(
+                  settings.isSongGrid ? Icons.view_list : Icons.grid_view,
+                ),
                 onPressed: () {
-                  setState(() {
-                    _isGridView = !_isGridView;
-                  });
+                  settings.toggleSongView();
                 },
               ),
             ],
@@ -68,7 +69,7 @@ class _FavoritesDetailPageState extends State<FavoritesDetailPage> {
                     ],
                   ),
                 )
-              : _isGridView
+              : settings.isSongGrid
               ? GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

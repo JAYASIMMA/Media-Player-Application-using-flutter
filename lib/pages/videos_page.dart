@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/media_item.dart';
 import '../../services/media_service.dart';
+import '../../services/settings_provider.dart';
 import 'video_player_page.dart';
 
 enum VideoLayoutMode { list, grid, large }
@@ -15,11 +17,13 @@ class VideosPage extends StatefulWidget {
 }
 
 class _VideosPageState extends State<VideosPage> {
-  VideoLayoutMode _layoutMode = VideoLayoutMode.list;
-
   @override
   Widget build(BuildContext context) {
     final videos = widget.mediaService.videos;
+    final settings = Provider.of<SettingsProvider>(context);
+    // Convert int setting to Enum for local usage if needed, or just use int directly in UI logic.
+    // Provider stores int: 0=List, 1=Grid, 2=Large.
+    final currentMode = VideoLayoutMode.values[settings.videoLayoutMode];
 
     return Column(
       children: [
@@ -29,11 +33,23 @@ class _VideosPageState extends State<VideosPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              _buildLayoutToggle(Icons.view_list, VideoLayoutMode.list),
+              _buildLayoutToggle(
+                Icons.view_list,
+                VideoLayoutMode.list,
+                settings,
+              ),
               const SizedBox(width: 8),
-              _buildLayoutToggle(Icons.grid_view, VideoLayoutMode.grid),
+              _buildLayoutToggle(
+                Icons.grid_view,
+                VideoLayoutMode.grid,
+                settings,
+              ),
               const SizedBox(width: 8),
-              _buildLayoutToggle(Icons.crop_square, VideoLayoutMode.large),
+              _buildLayoutToggle(
+                Icons.crop_square,
+                VideoLayoutMode.large,
+                settings,
+              ),
             ],
           ),
         ),
@@ -47,15 +63,19 @@ class _VideosPageState extends State<VideosPage> {
                     await widget.mediaService.loadMedia();
                     setState(() {});
                   },
-                  child: _buildVideoView(videos),
+                  child: _buildVideoView(videos, currentMode),
                 ),
         ),
       ],
     );
   }
 
-  Widget _buildLayoutToggle(IconData icon, VideoLayoutMode mode) {
-    final isSelected = _layoutMode == mode;
+  Widget _buildLayoutToggle(
+    IconData icon,
+    VideoLayoutMode mode,
+    SettingsProvider settings,
+  ) {
+    final isSelected = settings.videoLayoutMode == mode.index;
     return IconButton(
       icon: Icon(
         icon,
@@ -64,9 +84,7 @@ class _VideosPageState extends State<VideosPage> {
             : Colors.grey,
       ),
       onPressed: () {
-        setState(() {
-          _layoutMode = mode;
-        });
+        settings.setVideoLayoutMode(mode.index);
       },
     );
   }
@@ -92,8 +110,8 @@ class _VideosPageState extends State<VideosPage> {
     );
   }
 
-  Widget _buildVideoView(List<MediaItem> videos) {
-    switch (_layoutMode) {
+  Widget _buildVideoView(List<MediaItem> videos, VideoLayoutMode mode) {
+    switch (mode) {
       case VideoLayoutMode.grid:
         return GridView.builder(
           padding: const EdgeInsets.all(8),

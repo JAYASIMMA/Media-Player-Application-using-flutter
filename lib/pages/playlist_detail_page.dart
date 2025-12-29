@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import '../models/media_item.dart';
 import '../services/playlist_provider.dart';
 import '../services/media_service.dart';
-import 'audio_player_page.dart';
+import '../services/settings_provider.dart';
+import '../pages/audio_player_page.dart';
 import 'song_selection_page.dart';
 
 class PlaylistDetailPage extends StatefulWidget {
@@ -22,10 +23,10 @@ class PlaylistDetailPage extends StatefulWidget {
 }
 
 class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
-  bool _isGridView = false;
-
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
+
     return Consumer<PlaylistProvider>(
       builder: (context, playlistProvider, child) {
         final songs = playlistProvider.getPlaylistSongs(widget.playlistName);
@@ -49,11 +50,11 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
             ),
             actions: [
               IconButton(
-                icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+                icon: Icon(
+                  settings.isSongGrid ? Icons.view_list : Icons.grid_view,
+                ),
                 onPressed: () {
-                  setState(() {
-                    _isGridView = !_isGridView;
-                  });
+                  settings.toggleSongView();
                 },
               ),
             ],
@@ -93,7 +94,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                     ],
                   ),
                 )
-              : _isGridView
+              : settings.isSongGrid
               ? GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
