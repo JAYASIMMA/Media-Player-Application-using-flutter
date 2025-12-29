@@ -15,9 +15,9 @@ class NothingTheme {
   static TextTheme _buildTextTheme(TextTheme base, Color color) {
     // CMF / Nothing "Clean" Style:
     // Headers/Titles -> Space Mono (Industrial, technical, readable)
-    // Body -> Inter (Clean, highly legible)
+    // Body -> IBM Plex Serif (Elegant, contrast to the technical headers)
 
-    final baseTheme = GoogleFonts.interTextTheme(
+    final baseTheme = GoogleFonts.ibmPlexSerifTextTheme(
       base,
     ).apply(bodyColor: color, displayColor: color);
 

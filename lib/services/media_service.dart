@@ -212,4 +212,31 @@ class MediaService {
         )
         .toList();
   }
+
+  /// Groups music by Album name
+  List<Map<String, dynamic>> getAlbums() {
+    final Map<String, List<MediaItem>> albumGroups = {};
+
+    for (var song in music) {
+      final albumName = song.album ?? 'Unknown Album';
+      if (!albumGroups.containsKey(albumName)) {
+        albumGroups[albumName] = [];
+      }
+      albumGroups[albumName]!.add(song);
+    }
+
+    return albumGroups.entries.map((entry) {
+      final songs = entry.value;
+      // Use the first song's art and artist as the album's representative
+      final representative = songs.first;
+
+      return {
+        'name': entry.key,
+        'artist': representative.artist ?? 'Unknown Artist',
+        'art': representative.albumArt,
+        'songCount': songs.length,
+        'songs': songs,
+      };
+    }).toList();
+  }
 }
