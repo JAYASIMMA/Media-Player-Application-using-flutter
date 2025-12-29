@@ -4,6 +4,8 @@ import 'package:audioplayers/audioplayers.dart';
 class MyAudioHandler extends BaseAudioHandler {
   final _player = AudioPlayer();
 
+  Duration _currentPosition = Duration.zero;
+
   MyAudioHandler() {
     _init();
   }
@@ -16,6 +18,7 @@ class MyAudioHandler extends BaseAudioHandler {
 
     // Propagate position changes (optional, can be spammy)
     _player.onPositionChanged.listen((position) {
+      _currentPosition = position;
       _broadcastState();
     });
 
@@ -47,9 +50,9 @@ class MyAudioHandler extends BaseAudioHandler {
         androidCompactActionIndices: const [0, 1, 2],
         playing: playing,
         processingState: AudioProcessingState.ready,
-        updatePosition: _player.getCurrentPosition() ?? Duration.zero,
-        bufferedPosition: _player.getCurrentPosition() ?? Duration.zero,
-        speed: _player.playbackRate,
+        updatePosition: _currentPosition,
+        bufferedPosition: _currentPosition,
+        speed: 1.0,
         queueIndex: 0, // Should be updated if queue is supported
       ),
     );
