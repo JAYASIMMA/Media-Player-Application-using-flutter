@@ -19,10 +19,8 @@ class PlaylistProvider extends ChangeNotifier {
 
   void addToPlaylist(String playlistName, MediaItem song) {
     if (_playlists.containsKey(playlistName)) {
-      if (!_playlists[playlistName]!.contains(song)) {
-        _playlists[playlistName]!.add(song);
-        notifyListeners();
-      }
+      _playlists[playlistName]!.add(song);
+      notifyListeners();
     }
   }
 

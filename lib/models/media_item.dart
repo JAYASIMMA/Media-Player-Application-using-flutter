@@ -21,4 +21,14 @@ class MediaItem {
     this.artist,
     this.album,
   });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is MediaItem && other.path == path;
+  }
+
+  @override
+  int get hashCode => path.hashCode;
 }

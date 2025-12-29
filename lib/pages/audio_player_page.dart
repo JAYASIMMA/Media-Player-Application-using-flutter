@@ -120,10 +120,10 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                         title: Text(name, style: GoogleFonts.ibmPlexSerif()),
                         onTap: () {
                           playlistProvider.addToPlaylist(name, song);
-                          Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Added to $name')),
                           );
+                          Navigator.pop(context);
                         },
                       );
                     },
@@ -139,10 +139,10 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                 if (newName.isNotEmpty) {
                   playlistProvider.createPlaylist(newName);
                   playlistProvider.addToPlaylist(newName, song);
-                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Created and added to $newName')),
                   );
+                  Navigator.pop(context);
                 }
               },
               child: Text(
