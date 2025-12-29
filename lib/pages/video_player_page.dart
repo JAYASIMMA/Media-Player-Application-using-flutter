@@ -5,6 +5,8 @@ import 'package:video_player/video_player.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'dart:async';
+import 'package:screen_brightness/screen_brightness.dart';
+import 'package:volume_controller/volume_controller.dart';
 import '../models/media_item.dart';
 
 class VideoPlayerPage extends StatefulWidget {
@@ -24,6 +26,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   Timer? _hideTimer;
   TapDownDetails? _doubleTapDetails;
 
+  // Gesture State
+  double _brightness = 0.5;
+  double _volume = 0.5;
+  bool _isAdjustingBrightness = false;
+  bool _isAdjustingVolume = false;
+  Timer? _overlayTimer;
+
   @override
   void initState() {
     super.initState();
@@ -33,8 +42,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       DeviceOrientation.portraitUp,
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
     _initializeVideo();
     _startHideTimer();
+    _initGestureControllers();
+  }
+
+  void _initGestureControllers() async {
+    try {
+      _brightness = await ScreenBrightness().current;
+      _volume = await VolumeController.instance.getVolume();
+      setState(() {});
+    } catch (e) {
+      print("Error initializing controllers: $e");
+    }
   }
 
   void _startHideTimer() {
@@ -75,9 +96,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
-  @override
   void dispose() {
     _cancelHideTimer();
+    _overlayTimer?.cancel();
     _controller?.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -145,6 +166,54 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
+  void _handleVerticalDragStart(DragStartDetails details) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final tapPosition = details.globalPosition.dx;
+
+    if (tapPosition < screenWidth / 2) {
+      _isAdjustingBrightness = true;
+      _isAdjustingVolume = false;
+    } else {
+      _isAdjustingBrightness = false;
+      _isAdjustingVolume = true;
+    }
+    setState(() {});
+  }
+
+  void _handleVerticalDragUpdate(DragUpdateDetails details) async {
+    // Sensitivity: Full screen height drag = 1.0 change
+    final delta = -details.primaryDelta! / MediaQuery.of(context).size.height;
+
+    if (_isAdjustingBrightness) {
+      _brightness = (_brightness + delta).clamp(0.0, 1.0);
+      try {
+        await ScreenBrightness().setScreenBrightness(_brightness);
+      } catch (e) {
+        print("Error setting brightness: $e");
+      }
+    } else if (_isAdjustingVolume) {
+      _volume = (_volume + delta).clamp(0.0, 1.0);
+      try {
+        VolumeController.instance.setVolume(_volume);
+      } catch (e) {
+        print("Error setting volume: $e");
+      }
+    }
+    setState(() {});
+  }
+
+  void _handleVerticalDragEnd(DragEndDetails details) {
+    _overlayTimer?.cancel();
+    _overlayTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _isAdjustingBrightness = false;
+          _isAdjustingVolume = false;
+        });
+      }
+    });
+  }
+
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = duration.inHours;
@@ -172,6 +241,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           _doubleTapDetails = details;
         },
         onDoubleTap: _handleDoubleTap,
+        onVerticalDragStart: _handleVerticalDragStart,
+        onVerticalDragUpdate: _handleVerticalDragUpdate,
+        onVerticalDragEnd: _handleVerticalDragEnd,
         onHorizontalDragUpdate: _handleHorizontalDragUpdate,
         child: Stack(
           children: [
@@ -184,6 +256,50 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     )
                   : const CircularProgressIndicator(color: Colors.blue),
             ),
+
+            // Gesture Overlay Indicators
+            if (_isAdjustingBrightness || _isAdjustingVolume)
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _isAdjustingBrightness
+                            ? Icons.brightness_6
+                            : (_volume == 0
+                                  ? Icons.volume_off
+                                  : Icons.volume_up),
+                        color: Colors.white,
+                        size: 48,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '${((_isAdjustingBrightness ? _brightness : _volume) * 100).toInt()}%',
+                        style: GoogleFonts.spaceMono(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: 100,
+                        child: LinearProgressIndicator(
+                          value: _isAdjustingBrightness ? _brightness : _volume,
+                          backgroundColor: Colors.white24,
+                          color: const Color(0xFFD71920), // Nothing Red
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
             // Gradient Overlay
             if (_showControls)
