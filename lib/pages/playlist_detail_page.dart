@@ -19,6 +19,8 @@ class PlaylistDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Consumer<PlaylistProvider>(
       builder: (context, playlistProvider, child) {
         final songs = playlistProvider.getPlaylistSongs(playlistName);
@@ -29,14 +31,14 @@ class PlaylistDetailPage extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
-            backgroundColor: Colors.black,
-            iconTheme: const IconThemeData(color: Colors.white),
+            backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            iconTheme: Theme.of(context).iconTheme,
             title: Text(
               playlistName,
               style: GoogleFonts.notoSans(
-                color: Colors.white,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -49,12 +51,18 @@ class PlaylistDetailPage extends StatelessWidget {
                       Icon(
                         Icons.queue_music,
                         size: 80,
-                        color: Colors.grey[800],
+                        color: Theme.of(
+                          context,
+                        ).iconTheme.color?.withOpacity(0.5),
                       ),
                       const SizedBox(height: 16),
                       Text(
                         "Playlist is empty",
-                        style: GoogleFonts.spaceMono(color: Colors.grey),
+                        style: GoogleFonts.spaceMono(
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
@@ -72,8 +80,10 @@ class PlaylistDetailPage extends StatelessWidget {
                 )
               : ListView.separated(
                   itemCount: songs.length,
-                  separatorBuilder: (context, index) =>
-                      const Divider(color: Colors.white24, height: 1),
+                  separatorBuilder: (context, index) => Divider(
+                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                    height: 1,
+                  ),
                   itemBuilder: (context, index) {
                     final song = songs[index];
                     return ListTile(
@@ -81,7 +91,7 @@ class PlaylistDetailPage extends StatelessWidget {
                         width: 50,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: Colors.grey[900],
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(8),
                           image: song.albumArt != null
                               ? DecorationImage(
@@ -91,27 +101,38 @@ class PlaylistDetailPage extends StatelessWidget {
                               : null,
                         ),
                         child: song.albumArt == null
-                            ? const Icon(Icons.music_note, color: Colors.grey)
+                            ? Icon(
+                                Icons.music_note,
+                                color: Theme.of(
+                                  context,
+                                ).iconTheme.color?.withOpacity(0.5),
+                              )
                             : null,
                       ),
                       title: Text(
                         song.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(color: Colors.white),
+                        style: GoogleFonts.inter(
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
                       ),
                       subtitle: Text(
                         song.artist ?? "Unknown Artist",
                         maxLines: 1,
                         style: GoogleFonts.inter(
-                          color: Colors.grey,
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.color?.withOpacity(0.7),
                           fontSize: 12,
                         ),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.remove_circle_outline,
-                          color: Colors.grey,
+                          color: Theme.of(
+                            context,
+                          ).iconTheme.color?.withOpacity(0.5),
                         ),
                         onPressed: () {
                           playlistProvider.removeFromPlaylist(

@@ -396,10 +396,36 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                               ],
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.playlist_add),
-                            onPressed: () =>
-                                _addToPlaylist(context, currentAudio),
+                          Row(
+                            children: [
+                              Consumer<PlaylistProvider>(
+                                builder: (context, playlistProvider, child) {
+                                  final isFav = playlistProvider.isFavorite(
+                                    currentAudio,
+                                  );
+                                  return IconButton(
+                                    icon: Icon(
+                                      isFav
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: isFav
+                                          ? const Color(0xFFD71920)
+                                          : Colors.grey,
+                                    ),
+                                    onPressed: () {
+                                      playlistProvider.toggleFavorite(
+                                        currentAudio,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.playlist_add),
+                                onPressed: () =>
+                                    _addToPlaylist(context, currentAudio),
+                              ),
+                            ],
                           ),
                         ],
                       ),

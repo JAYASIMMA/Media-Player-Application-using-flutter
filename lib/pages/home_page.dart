@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/audio_provider.dart' as Service;
+import '../services/playlist_provider.dart' as PlaylistProv;
 import '../services/theme_provider.dart';
 import '../services/media_service.dart';
 import '../models/media_item.dart';
@@ -175,7 +176,10 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          // Row 2: Total Songs + Quick Actions
+
+                          const SizedBox(height: 12),
+                          // Row 2: Total Songs + Favorites + Quick Actions
+                          // Wait, the design was Row 2: Songs | Favorites. Row 3: Quick Actions.
                           IntrinsicHeight(
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -233,125 +237,178 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  flex: 2, // Larger width for actions
-                                  child: NothingWidgetContainer(
-                                    padding: EdgeInsets.zero,
-                                    child: Column(
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            children: [
-                                              _buildQuickAction(
-                                                context,
-                                                "Videos",
-                                                Icons.videocam_outlined,
-                                                () => Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) => Scaffold(
-                                                      appBar: AppBar(
-                                                        title: const Text(
-                                                          "Videos",
-                                                        ),
-                                                      ),
-                                                      body: VideosPage(
-                                                        mediaService:
-                                                            _mediaService,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              Container(
-                                                width: 1,
-                                                color: Theme.of(
-                                                  context,
-                                                ).dividerColor.withOpacity(0.1),
-                                              ),
-                                              _buildQuickAction(
-                                                context,
-                                                "Folders",
-                                                Icons.folder_open_outlined,
-                                                () => Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) => Scaffold(
-                                                      appBar: AppBar(
-                                                        title: const Text(
-                                                          "Folders",
-                                                        ),
-                                                      ),
-                                                      body: FoldersPage(
-                                                        mediaService:
-                                                            _mediaService,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              Container(
-                                                width: 1,
-                                                color: Theme.of(
-                                                  context,
-                                                ).dividerColor.withOpacity(0.1),
-                                              ),
-                                              _buildQuickAction(
-                                                context,
-                                                "Playlists",
-                                                Icons.playlist_play,
-                                                () => Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        PlaylistPage(
-                                                          mediaService:
-                                                              _mediaService,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        Container(
-                                          height: 1,
-                                          color: Theme.of(
-                                            context,
-                                          ).dividerColor.withOpacity(0.1),
-                                        ),
-                                        Expanded(
-                                          child: InkWell(
-                                            onTap: () => Navigator.push(
+                                  child: Consumer<PlaylistProv.PlaylistProvider>(
+                                    builder: (context, playlistProvider, child) {
+                                      return NothingWidgetContainer(
+                                        onTap: () {
+                                          if (playlistProvider
+                                              .favorites
+                                              .isNotEmpty) {
+                                            Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (_) =>
-                                                    const SettingsPage(),
+                                                builder: (context) =>
+                                                    AudioPlayerPage(
+                                                      audio: playlistProvider
+                                                          .favorites
+                                                          .first,
+                                                      playlist: playlistProvider
+                                                          .favorites,
+                                                      autoplay: false,
+                                                    ),
                                               ),
-                                            ),
-                                            child: Center(
-                                              child: Center(
-                                                child: Text(
-                                                  "SETTINGS",
-                                                  style:
-                                                      GoogleFonts.ibmPlexSerif(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        letterSpacing: 1.5,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodyLarge
-                                                            ?.color,
-                                                      ),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "No favorites yet!",
                                                 ),
                                               ),
+                                            );
+                                          }
+                                        },
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFD71920),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                Icons.favorite,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
                                             ),
-                                          ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${playlistProvider.favoriteCount}',
+                                                  style: GoogleFonts.spaceMono(
+                                                    fontSize: 32,
+                                                    fontWeight: FontWeight.bold,
+                                                    height: 1.0,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  "Favorites",
+                                                  style: TextStyle(
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium
+                                                        ?.color
+                                                        ?.withOpacity(0.6),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          // Row 3: Quick Actions
+                          IntrinsicHeight(
+                            child: NothingWidgetContainer(
+                              padding: EdgeInsets.zero,
+                              child: Row(
+                                children: [
+                                  _buildQuickAction(
+                                    context,
+                                    "Videos",
+                                    Icons.videocam_outlined,
+                                    () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => Scaffold(
+                                          appBar: AppBar(
+                                            title: const Text("Videos"),
+                                          ),
+                                          body: VideosPage(
+                                            mediaService: _mediaService,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    color: Theme.of(
+                                      context,
+                                    ).dividerColor.withOpacity(0.1),
+                                  ),
+                                  _buildQuickAction(
+                                    context,
+                                    "Folders",
+                                    Icons.folder_open_outlined,
+                                    () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => Scaffold(
+                                          appBar: AppBar(
+                                            title: const Text("Folders"),
+                                          ),
+                                          body: FoldersPage(
+                                            mediaService: _mediaService,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    color: Theme.of(
+                                      context,
+                                    ).dividerColor.withOpacity(0.1),
+                                  ),
+                                  _buildQuickAction(
+                                    context,
+                                    "Playlists",
+                                    Icons.playlist_play,
+                                    () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PlaylistPage(
+                                          mediaService: _mediaService,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    color: Theme.of(
+                                      context,
+                                    ).dividerColor.withOpacity(0.1),
+                                  ),
+                                  _buildQuickAction(
+                                    context,
+                                    "Settings",
+                                    Icons.settings,
+                                    () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const SettingsPage(),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
