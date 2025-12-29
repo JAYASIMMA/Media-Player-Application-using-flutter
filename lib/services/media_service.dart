@@ -357,11 +357,9 @@ class MediaService {
       albumGroups[albumName]!.add(song);
     }
 
-    return albumGroups.entries.map((entry) {
+    final sortedAlbums = albumGroups.entries.map((entry) {
       final songs = entry.value;
-      // Use the first song's art and artist as the album's representative
       final representative = songs.first;
-
       return {
         'name': entry.key,
         'artist': representative.artist ?? 'Unknown Artist',
@@ -370,5 +368,22 @@ class MediaService {
         'songs': songs,
       };
     }).toList();
+
+    sortedAlbums.sort((a, b) {
+      final nameA = a['name'] as String;
+      final nameB = b['name'] as String;
+      final isUnknownA =
+          nameA == 'Unknown Album' ||
+          (a['artist'] as String) == 'Unknown Artist';
+      final isUnknownB =
+          nameB == 'Unknown Album' ||
+          (b['artist'] as String) == 'Unknown Artist';
+
+      if (isUnknownA && !isUnknownB) return 1;
+      if (!isUnknownA && isUnknownB) return -1;
+      return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+    });
+
+    return sortedAlbums;
   }
 }
