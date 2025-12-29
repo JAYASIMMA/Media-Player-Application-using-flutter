@@ -16,7 +16,10 @@ class AudioProvider extends ChangeNotifier {
 
   AudioProvider() {
     _initAudioPlayer();
+    _playNextAutomatically = true; // Auto-play next song
   }
+
+  bool _playNextAutomatically = true;
 
   bool get isPlaying => _isPlaying;
   bool get isShuffling => _isShuffling;
@@ -27,6 +30,26 @@ class AudioProvider extends ChangeNotifier {
   List<MediaItem> get playlist => _playlist;
 
   void _initAudioPlayer() {
+    // Enable background playback
+    final AudioContext audioContext = AudioContext(
+      iOS: AudioContextIOS(
+        category: AVAudioSessionCategory.playback,
+        options: {
+          AVAudioSessionOptions.defaultToSpeaker,
+          AVAudioSessionOptions.allowBluetooth,
+          AVAudioSessionOptions.allowAirPlay,
+        },
+      ),
+      android: AudioContextAndroid(
+        isSpeakerphoneOn: true,
+        stayAwake: true,
+        contentType: AndroidContentType.music,
+        usageType: AndroidUsageType.media,
+        audioFocus: AndroidAudioFocus.gain,
+      ),
+    );
+    AudioPlayer.global.setAudioContext(audioContext);
+
     _audioPlayer.onDurationChanged.listen((duration) {
       _duration = duration;
       notifyListeners();
@@ -44,8 +67,10 @@ class AudioProvider extends ChangeNotifier {
 
     _audioPlayer.onPlayerComplete.listen((event) {
       if (_isRepeating) {
-        play(_currentAudio!, _playlist); // Replay current
-      } else {
+        if (_currentAudio != null && _playlist.isNotEmpty) {
+          play(_currentAudio!, _playlist);
+        }
+      } else if (_playNextAutomatically) {
         playNext();
       }
     });
@@ -53,14 +78,16 @@ class AudioProvider extends ChangeNotifier {
 
   Future<void> play(MediaItem audio, List<MediaItem> playlist) async {
     _currentAudio = audio;
-    _playlist = playlist;
-    _currentIndex = _playlist.indexOf(audio);
+    _playlist = playlist; // This updates the working playlist.
+    // If shuffle is ON, we should arguably effectively shuffle the incoming playlist
+    // but the UI usually passes the raw album list.
+    // For simplicity, we keep the passed list as the "source of truth".
 
-    // Reset state if new song
+    _currentIndex = _playlist.indexOf(audio);
     _position = Duration.zero;
 
     try {
-      await _audioPlayer.stop(); // Stop potential previous
+      await _audioPlayer.stop();
       await _audioPlayer.play(DeviceFileSource(audio.path));
     } catch (e) {
       debugPrint("Error playing audio: $e");
@@ -68,13 +95,8 @@ class AudioProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> resume() async {
-    await _audioPlayer.resume();
-  }
-
-  Future<void> pause() async {
-    await _audioPlayer.pause();
-  }
+  Future<void> resume() async => await _audioPlayer.resume();
+  Future<void> pause() async => await _audioPlayer.pause();
 
   Future<void> togglePlayPause() async {
     if (_isPlaying) {
@@ -83,42 +105,52 @@ class AudioProvider extends ChangeNotifier {
       if (_currentAudio != null) {
         await resume();
       } else if (_playlist.isNotEmpty) {
-        // Play first if nothing is current but playlist exists
         play(_playlist.first, _playlist);
       }
     }
   }
 
-  Future<void> seek(Duration position) async {
-    await _audioPlayer.seek(position);
-  }
+  Future<void> seek(Duration position) async =>
+      await _audioPlayer.seek(position);
 
   Future<void> playNext() async {
-    if (_playlist.isEmpty || _currentIndex == -1) return;
+    if (_playlist.isEmpty) return;
 
-    if (_currentIndex < _playlist.length - 1) {
-      play(_playlist[_currentIndex + 1], _playlist);
+    if (_isShuffling) {
+      // Pick random index
+      // Simple logic: just pick random from playlist size, ensuring it's not current if possible
+      final random = List.generate(_playlist.length, (index) => index);
+      random.shuffle();
+      int nextIndex = random.first;
+      if (nextIndex == _currentIndex && _playlist.length > 1) {
+        nextIndex = random[1];
+      }
+      play(_playlist[nextIndex], _playlist);
     } else {
-      // Loop back to start or stop? Let's stop for now unless repeat is global
-      // If we want infinite loop:
-      // play(_playlist.first, _playlist);
+      // Normal sequential
+      if (_currentIndex < _playlist.length - 1) {
+        play(_playlist[_currentIndex + 1], _playlist);
+      } else {
+        // Stop at end of list
+      }
     }
   }
 
   Future<void> playPrevious() async {
-    if (_playlist.isEmpty || _currentIndex == -1) return;
+    if (_playlist.isEmpty) return;
 
     if (_position.inSeconds > 3) {
       seek(Duration.zero);
-    } else if (_currentIndex > 0) {
-      play(_playlist[_currentIndex - 1], _playlist);
+    } else {
+      // Ideally we track history for shuffle, but standard prev is fine too
+      if (_currentIndex > 0) {
+        play(_playlist[_currentIndex - 1], _playlist);
+      }
     }
   }
 
   void toggleShuffle() {
     _isShuffling = !_isShuffling;
-    // Implementation of shuffle logic would go here (reordering playlist or random index)
-    // For now just toggling the flag
     notifyListeners();
   }
 

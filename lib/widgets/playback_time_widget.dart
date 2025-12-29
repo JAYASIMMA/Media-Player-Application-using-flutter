@@ -21,35 +21,39 @@ class PlaybackTimeWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  hasAudio ? posString : "00:00",
-                  style: GoogleFonts.ibmPlexSerif(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    height: 1.0,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    hasAudio ? posString : "00:00",
+                    style: GoogleFonts.ibmPlexSerif(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      height: 1.0,
+                    ),
                   ),
-                ),
-                Text(
-                  ' / ',
-                  style: GoogleFonts.ibmPlexSerif(
-                    fontSize: 24,
-                    color: Theme.of(context).colorScheme.secondary,
+                  Text(
+                    ' / ',
+                    style: GoogleFonts.ibmPlexSerif(
+                      fontSize: 24,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                   ),
-                ),
-                Text(
-                  hasAudio ? durString : "00:00",
-                  style: GoogleFonts.ibmPlexSerif(
-                    fontSize: 24,
-                    color: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.color?.withOpacity(0.5),
+                  Text(
+                    hasAudio ? durString : "00:00",
+                    style: GoogleFonts.ibmPlexSerif(
+                      fontSize: 24,
+                      color: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.color?.withOpacity(0.5),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             Text(
