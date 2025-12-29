@@ -23,6 +23,80 @@ class PlaylistDetailPage extends StatefulWidget {
 }
 
 class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
+  bool _isSelectionMode = false;
+  final Set<String> _selectedPaths = {};
+
+  void _toggleSelection(String path) {
+    setState(() {
+      if (_selectedPaths.contains(path)) {
+        _selectedPaths.remove(path);
+        if (_selectedPaths.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedPaths.add(path);
+      }
+    });
+  }
+
+  void _enterSelectionMode(String path) {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedPaths.add(path);
+    });
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedPaths.clear();
+    });
+  }
+
+  Future<void> _deleteSelected(PlaylistProvider provider) async {
+    final count = _selectedPaths.length;
+    if (count == 0) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove Songs?'),
+        content: Text('Remove $count songs from this playlist?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // Find items to remove
+      final songsToRemove = provider
+          .getPlaylistSongs(widget.playlistName)
+          .where((s) => _selectedPaths.contains(s.path))
+          .toList();
+
+      for (final song in songsToRemove) {
+        provider.removeFromPlaylist(widget.playlistName, song);
+      }
+
+      _exitSelectionMode();
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$count songs removed')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
@@ -36,108 +110,133 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
           return const SizedBox();
         }
 
-        return Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-            iconTheme: Theme.of(context).iconTheme,
-            title: Text(
-              widget.playlistName,
-              style: GoogleFonts.notoSans(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  settings.isSongGrid ? Icons.view_list : Icons.grid_view,
-                ),
-                onPressed: () {
-                  settings.toggleSongView();
-                },
-              ),
-            ],
-          ),
-          body: songs.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.queue_music,
-                        size: 80,
-                        color: Theme.of(
-                          context,
-                        ).iconTheme.color?.withOpacity(0.5),
+        return WillPopScope(
+          onWillPop: () async {
+            if (_isSelectionMode) {
+              _exitSelectionMode();
+              return false;
+            }
+            return true;
+          },
+          child: Scaffold(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: AppBar(
+              backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+              iconTheme: Theme.of(context).iconTheme,
+              leading: _isSelectionMode
+                  ? IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: _exitSelectionMode,
+                    )
+                  : null, // Default
+              title: _isSelectionMode
+                  ? Text("${_selectedPaths.length} Selected")
+                  : Text(
+                      widget.playlistName,
+                      style: GoogleFonts.notoSans(
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Playlist is empty",
-                        style: GoogleFonts.spaceMono(
+                    ),
+              actions: [
+                if (_isSelectionMode)
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => _deleteSelected(playlistProvider),
+                  )
+                else ...[
+                  IconButton(
+                    icon: Icon(
+                      settings.isSongGrid ? Icons.view_list : Icons.grid_view,
+                    ),
+                    onPressed: () {
+                      settings.toggleSongView();
+                    },
+                  ),
+                ],
+              ],
+            ),
+            body: songs.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.queue_music,
+                          size: 80,
                           color: Theme.of(
                             context,
-                          ).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                          ).iconTheme.color?.withOpacity(0.5),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD71920),
-                          foregroundColor: Colors.white,
+                        const SizedBox(height: 16),
+                        Text(
+                          "Playlist is empty",
+                          style: GoogleFonts.spaceMono(
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                          ),
                         ),
-                        onPressed: () =>
-                            _openSongSelection(context, playlistProvider),
-                        icon: const Icon(Icons.add),
-                        label: const Text("ADD SONGS"),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD71920),
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () =>
+                              _openSongSelection(context, playlistProvider),
+                          icon: const Icon(Icons.add),
+                          label: const Text("ADD SONGS"),
+                        ),
+                      ],
+                    ),
+                  )
+                : settings.isSongGrid
+                ? GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                    itemCount: songs.length,
+                    itemBuilder: (context, index) {
+                      final song = songs[index];
+                      return _buildGridItem(
+                        context,
+                        song,
+                        playlistProvider,
+                        songs,
+                      );
+                    },
+                  )
+                : ListView.separated(
+                    itemCount: songs.length,
+                    separatorBuilder: (context, index) => Divider(
+                      color: Theme.of(context).dividerColor.withOpacity(0.1),
+                      height: 1,
+                    ),
+                    itemBuilder: (context, index) {
+                      final song = songs[index];
+                      return _buildListItem(
+                        context,
+                        song,
+                        playlistProvider,
+                        songs,
+                      );
+                    },
                   ),
-                )
-              : settings.isSongGrid
-              ? GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: songs.length,
-                  itemBuilder: (context, index) {
-                    final song = songs[index];
-                    return _buildGridItem(
-                      context,
-                      song,
-                      playlistProvider,
-                      songs,
-                    );
-                  },
-                )
-              : ListView.separated(
-                  itemCount: songs.length,
-                  separatorBuilder: (context, index) => Divider(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
-                    height: 1,
-                  ),
-                  itemBuilder: (context, index) {
-                    final song = songs[index];
-                    return _buildListItem(
-                      context,
-                      song,
-                      playlistProvider,
-                      songs,
-                    );
-                  },
-                ),
-          floatingActionButton: songs.isNotEmpty
-              ? FloatingActionButton(
-                  backgroundColor: const Color(0xFFD71920),
-                  child: const Icon(Icons.add, color: Colors.white),
-                  onPressed: () =>
-                      _openSongSelection(context, playlistProvider),
-                )
-              : null,
+            floatingActionButton: (!_isSelectionMode && songs.isNotEmpty)
+                ? FloatingActionButton(
+                    backgroundColor: const Color(0xFFD71920),
+                    child: const Icon(Icons.add, color: Colors.white),
+                    onPressed: () =>
+                        _openSongSelection(context, playlistProvider),
+                  )
+                : null,
+          ),
         );
       },
     );
@@ -149,26 +248,45 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
     PlaylistProvider provider,
     List<MediaItem> songs,
   ) {
+    final isSelected = _selectedPaths.contains(song.path);
     return ListTile(
-      leading: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
-          image: song.albumArt != null
-              ? DecorationImage(
-                  image: MemoryImage(song.albumArt!),
-                  fit: BoxFit.cover,
-                )
-              : null,
-        ),
-        child: song.albumArt == null
-            ? Icon(
-                Icons.music_note,
-                color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
-              )
-            : null,
+      selected: isSelected,
+      selectedTileColor: Theme.of(context).primaryColor.withOpacity(0.1),
+      leading: Stack(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
+              image: song.albumArt != null
+                  ? DecorationImage(
+                      image: MemoryImage(song.albumArt!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: song.albumArt == null
+                ? Icon(
+                    Icons.music_note,
+                    color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+                  )
+                : null,
+          ),
+          if (_isSelectionMode && isSelected)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(Icons.check, color: Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
       title: Text(
         song.name,
@@ -188,22 +306,33 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
           fontSize: 12,
         ),
       ),
-      trailing: IconButton(
-        icon: Icon(
-          Icons.remove_circle_outline,
-          color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
-        ),
-        onPressed: () {
-          provider.removeFromPlaylist(widget.playlistName, song);
-        },
-      ),
+      trailing: _isSelectionMode
+          ? Checkbox(
+              value: isSelected,
+              onChanged: (val) => _toggleSelection(song.path),
+            )
+          : IconButton(
+              icon: Icon(
+                Icons.remove_circle_outline,
+                color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+              ),
+              onPressed: () {
+                provider.removeFromPlaylist(widget.playlistName, song);
+              },
+            ),
+      onLongPress: () => _enterSelectionMode(song.path),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AudioPlayerPage(audio: song, playlist: songs),
-          ),
-        );
+        if (_isSelectionMode) {
+          _toggleSelection(song.path);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AudioPlayerPage(audio: song, playlist: songs),
+            ),
+          );
+        }
       },
     );
   }
@@ -214,14 +343,21 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
     PlaylistProvider provider,
     List<MediaItem> songs,
   ) {
+    final isSelected = _selectedPaths.contains(song.path);
     return GestureDetector(
+      onLongPress: () => _enterSelectionMode(song.path),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AudioPlayerPage(audio: song, playlist: songs),
-          ),
-        );
+        if (_isSelectionMode) {
+          _toggleSelection(song.path);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AudioPlayerPage(audio: song, playlist: songs),
+            ),
+          );
+        }
       },
       child: Stack(
         children: [
@@ -233,6 +369,9 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
+                    border: isSelected
+                        ? Border.all(color: Colors.red, width: 2)
+                        : null,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
@@ -272,27 +411,47 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
               ),
             ],
           ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: GestureDetector(
-              onTap: () {
-                provider.removeFromPlaylist(widget.playlistName, song);
-              },
+          if (_isSelectionMode)
+            Positioned(
+              top: 8,
+              right: 8,
               child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.remove_circle_outline,
                   color: Colors.white,
-                  size: 20,
+                ),
+                child: Icon(
+                  isSelected
+                      ? Icons.check_circle
+                      : Icons.radio_button_unchecked,
+                  color: isSelected ? Colors.red : Colors.grey,
                 ),
               ),
             ),
-          ),
+          // Existing quick remove button - hide in selection mode to avoid confusion?
+          // User asked for long press select to remove.
+          if (!_isSelectionMode)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () {
+                  provider.removeFromPlaylist(widget.playlistName, song);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.remove_circle_outline,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
