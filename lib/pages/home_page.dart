@@ -11,6 +11,7 @@ import 'music_page.dart';
 import 'videos_page.dart';
 import 'folders_page.dart';
 import 'settings_page.dart';
+import 'playlist_page.dart';
 import 'audio_player_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -267,6 +268,24 @@ class _HomePageState extends State<HomePage> {
                                                             _mediaService,
                                                       ),
                                                     ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                width: 1,
+                                                color: Theme.of(
+                                                  context,
+                                                ).dividerColor.withOpacity(0.1),
+                                              ),
+                                              _buildQuickAction(
+                                                context,
+                                                "Playlists",
+                                                Icons.playlist_play,
+                                                () => Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        const PlaylistPage(),
                                                   ),
                                                 ),
                                               ),
