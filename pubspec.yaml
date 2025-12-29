@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  audioplayers: ^6.5.1
   video_player: ^2.10.1
   permission_handler: ^12.0.1
   path: ^1.9.1
@@ -25,7 +24,10 @@ dependencies:
   video_thumbnail: ^0.5.3
   shared_preferences: ^2.2.2
   path_provider: ^2.1.2
-  audio_service: ^0.18.18
+  just_audio: ^0.10.5
+  just_audio_background: ^0.0.1-beta.17
+  auto_size_text: ^3.0.0
+  auto_size_text_field: ^2.2.4
 
 dev_dependencies:
   flutter_test:

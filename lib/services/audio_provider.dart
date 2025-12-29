@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
-import '../models/media_item.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:just_audio_background/just_audio_background.dart';
+import '../models/media_item.dart' as model;
+// Note: AudioService's MediaItem might conflict if we import audio_service.
+// just_audio_background exports MediaItem from audio_service_platform_interface.
+// So we use it from there.
 
 class AudioProvider extends ChangeNotifier {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  late AudioPlayer _audioPlayer;
 
   bool _isPlaying = false;
   bool _isShuffling = false;
   bool _isRepeating = false;
   Duration _duration = Duration.zero;
   Duration _position = Duration.zero;
-  MediaItem? _currentAudio;
-  List<MediaItem> _playlist = [];
+
+  List<model.MediaItem> _playlist = [];
   int _currentIndex = -1;
   double _volume = 1.0;
 
@@ -19,79 +23,111 @@ class AudioProvider extends ChangeNotifier {
     _initAudioPlayer();
   }
 
+  // Getters
   bool get isPlaying => _isPlaying;
   bool get isShuffling => _isShuffling;
   bool get isRepeating => _isRepeating;
   Duration get duration => _duration;
   Duration get position => _position;
-  MediaItem? get currentAudio => _currentAudio;
-  List<MediaItem> get playlist => _playlist;
+  model.MediaItem? get currentAudio =>
+      (_currentIndex != -1 && _currentIndex < _playlist.length)
+      ? _playlist[_currentIndex]
+      : null;
+  List<model.MediaItem> get playlist => _playlist;
   double get volume => _volume;
 
   void _initAudioPlayer() {
-    // Configure for background playback
-    // _audioPlayer.setAudioContext(
-    //   AudioContext(
-    //     iOS: AudioContextIOS(
-    //       category: AVAudioSessionCategory.playback,
-    //       options: {
-    //         AVAudioSessionOptions.defaultToSpeaker,
-    //         AVAudioSessionOptions.allowAirPlay,
-    //       },
-    //     ),
-    //     android: AudioContextAndroid(
-    //       isSpeakerphoneOn: true,
-    //       stayAwake: true,
-    //       contentType: AndroidContentType.music,
-    //       usageType: AndroidUsageType.media,
-    //       audioFocus: AndroidAudioFocus.gain,
-    //     ),
-    //   ),
-    // );
+    _audioPlayer = AudioPlayer();
 
-    _audioPlayer.onDurationChanged.listen((duration) {
-      _duration = duration;
+    // Listen to playback state
+    _audioPlayer.playerStateStream.listen((playerState) {
+      final isPlaying = playerState.playing;
+      final processingState = playerState.processingState;
+      _isPlaying = isPlaying && processingState != ProcessingState.completed;
       notifyListeners();
     });
 
-    _audioPlayer.onPositionChanged.listen((position) {
+    // Listen to position
+    _audioPlayer.positionStream.listen((position) {
       _position = position;
       notifyListeners();
     });
 
-    _audioPlayer.onPlayerStateChanged.listen((state) {
-      _isPlaying = state == PlayerState.playing;
+    // Listen to duration
+    _audioPlayer.durationStream.listen((duration) {
+      _duration = duration ?? Duration.zero;
       notifyListeners();
     });
 
-    _audioPlayer.onPlayerComplete.listen((event) {
-      if (_isRepeating) {
-        play(_currentAudio!, _playlist); // Replay current
-      } else {
-        playNext();
+    // Listen to current item index
+    _audioPlayer.currentIndexStream.listen((index) {
+      if (index != null) {
+        _currentIndex = index;
+        notifyListeners();
       }
+    });
+
+    // Listen to shuffle/loop mode to update UI state
+    _audioPlayer.shuffleModeEnabledStream.listen((enabled) {
+      _isShuffling = enabled;
+      notifyListeners();
+    });
+
+    _audioPlayer.loopModeStream.listen((loopMode) {
+      _isRepeating = loopMode == LoopMode.one;
+      notifyListeners();
     });
   }
 
-  Future<void> play(MediaItem audio, List<MediaItem> playlist) async {
-    _currentAudio = audio;
+  Future<void> play(
+    model.MediaItem audio,
+    List<model.MediaItem> playlist,
+  ) async {
     _playlist = playlist;
-    _currentIndex = _playlist.indexOf(audio);
 
-    // Reset state if new song
-    _position = Duration.zero;
+    // Find index of the selected audio
+    final initialIndex = playlist.indexOf(audio);
+    if (initialIndex == -1) return;
+
+    // Create AudioSources with Metadata
+    final audioSources = playlist.map((item) {
+      return AudioSource.file(
+        item.path,
+        tag: MediaItem(
+          id: item.path,
+          album: item.album ?? "Unknown Album",
+          title: item.name,
+          artist: item.artist ?? "Unknown Artist",
+          artUri:
+              null, // item.albumArt is bytes, but we need a file path for notification.
+          // TODO: Implement cache file creation or use MediaService cache path.
+          // Note: Passing bytes is hard.
+          // If we have no file path for art, we usually pass null or a placeholder.
+          // just_audio_background ideally needs a URI.
+          // For now, let's skip art URI if we don't have a reliable file path,
+          // OR verify if we can pass a data URI (usually too large).
+          // We'll leave artUri null if not checking custom cache paths carefully.
+        ),
+      );
+    }).toList();
 
     try {
-      await _audioPlayer.stop(); // Stop potential previous
-      await _audioPlayer.play(DeviceFileSource(audio.path));
+      await _audioPlayer.setAudioSource(
+        ConcatenatingAudioSource(children: audioSources),
+        initialIndex: initialIndex,
+      );
+      await _audioPlayer.play();
     } catch (e) {
-      debugPrint("Error playing audio: $e");
+      debugPrint("Error loading playlist: $e");
     }
-    notifyListeners();
   }
 
+  // TODO: Fix Album Art URI.
+  // We need a path. Models might have art bytes but not path.
+  // We should rely on MediaService to provide paths or cache.
+
   Future<void> resume() async {
-    await _audioPlayer.resume();
+    await _audioPlayer.play();
   }
 
   Future<void> pause() async {
@@ -100,14 +136,9 @@ class AudioProvider extends ChangeNotifier {
 
   Future<void> togglePlayPause() async {
     if (_isPlaying) {
-      await pause();
+      await _audioPlayer.pause();
     } else {
-      if (_currentAudio != null) {
-        await resume();
-      } else if (_playlist.isNotEmpty) {
-        // Play first if nothing is current but playlist exists
-        play(_playlist.first, _playlist);
-      }
+      await _audioPlayer.play();
     }
   }
 
@@ -116,42 +147,41 @@ class AudioProvider extends ChangeNotifier {
   }
 
   Future<void> playNext() async {
-    if (_playlist.isEmpty || _currentIndex == -1) return;
-
-    if (_currentIndex < _playlist.length - 1) {
-      play(_playlist[_currentIndex + 1], _playlist);
-    } else {
-      // Loop back to start or stop? Let's stop for now unless repeat is global
-      // If we want infinite loop:
-      // play(_playlist.first, _playlist);
-    }
+    await _audioPlayer.seekToNext();
   }
 
   Future<void> playPrevious() async {
-    if (_playlist.isEmpty || _currentIndex == -1) return;
-
-    if (_position.inSeconds > 3) {
-      seek(Duration.zero);
-    } else if (_currentIndex > 0) {
-      play(_playlist[_currentIndex - 1], _playlist);
-    }
+    await _audioPlayer.seekToPrevious();
   }
 
-  void toggleShuffle() {
+  Future<void> toggleShuffle() async {
     _isShuffling = !_isShuffling;
-    // Implementation of shuffle logic would go here (reordering playlist or random index)
-    // For now just toggling the flag
-    notifyListeners();
+    await _audioPlayer.setShuffleModeEnabled(_isShuffling);
   }
 
-  void toggleRepeat() {
-    _isRepeating = !_isRepeating;
-    notifyListeners();
+  Future<void> toggleRepeat() async {
+    // Check current loop mode.
+    // Logic: If off -> One. If One -> All? Or just Off/One toggle.
+    // UI usually toggles Repeat One vs Repeat Off for single tap?
+    // Or Repeat Off -> Repeat All -> Repeat One.
+    // User code had boolean `isRepeating`.
+    // Let's toggle between One and Off/All.
+    if (_isRepeating) {
+      await _audioPlayer.setLoopMode(LoopMode.off); // or all
+    } else {
+      await _audioPlayer.setLoopMode(LoopMode.one);
+    }
   }
 
   Future<void> setVolume(double volume) async {
     _volume = volume.clamp(0.0, 1.0);
     await _audioPlayer.setVolume(_volume);
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
   }
 }

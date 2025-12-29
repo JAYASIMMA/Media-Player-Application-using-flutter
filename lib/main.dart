@@ -9,9 +9,18 @@ import 'services/playlist_provider.dart';
 import 'services/settings_provider.dart';
 import 'themes/nothing_theme.dart';
 
+import 'package:just_audio_background/just_audio_background.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
+
   runApp(
     MultiProvider(
       providers: [
