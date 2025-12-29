@@ -134,6 +134,7 @@ class _HomePageState extends State<HomePage> {
                                             builder: (_) => AudioPlayerPage(
                                               audio: provider.currentAudio!,
                                               playlist: provider.playlist,
+                                              autoplay: false,
                                             ),
                                           ),
                                         );

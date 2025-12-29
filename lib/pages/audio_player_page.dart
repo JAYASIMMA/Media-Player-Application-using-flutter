@@ -8,9 +8,14 @@ import '../services/playlist_provider.dart';
 class AudioPlayerPage extends StatefulWidget {
   final MediaItem audio;
   final List<MediaItem> playlist;
+  final bool autoplay;
 
-  const AudioPlayerPage({Key? key, required this.audio, required this.playlist})
-    : super(key: key);
+  const AudioPlayerPage({
+    Key? key,
+    required this.audio,
+    required this.playlist,
+    this.autoplay = true,
+  }) : super(key: key);
 
   @override
   State<AudioPlayerPage> createState() => _AudioPlayerPageState();
@@ -35,10 +40,12 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
     super.didChangeDependencies();
     if (!_isInit) {
       // Play the selected audio when page opens
-      Provider.of<AudioProvider>(
-        context,
-        listen: false,
-      ).play(widget.audio, widget.playlist);
+      if (widget.autoplay) {
+        Provider.of<AudioProvider>(
+          context,
+          listen: false,
+        ).play(widget.audio, widget.playlist);
+      }
       _isInit = true;
     }
   }
