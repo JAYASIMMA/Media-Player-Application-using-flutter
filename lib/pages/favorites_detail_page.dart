@@ -2,10 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/playlist_provider.dart';
+import '../models/media_item.dart';
 import '../pages/audio_player_page.dart';
 
-class FavoritesDetailPage extends StatelessWidget {
+class FavoritesDetailPage extends StatefulWidget {
   const FavoritesDetailPage({Key? key}) : super(key: key);
+
+  @override
+  State<FavoritesDetailPage> createState() => _FavoritesDetailPageState();
+}
+
+class _FavoritesDetailPageState extends State<FavoritesDetailPage> {
+  bool _isGridView = false;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +33,16 @@ class FavoritesDetailPage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            actions: [
+              IconButton(
+                icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+                onPressed: () {
+                  setState(() {
+                    _isGridView = !_isGridView;
+                  });
+                },
+              ),
+            ],
           ),
           body: favorites.isEmpty
               ? Center(
@@ -50,6 +68,26 @@ class FavoritesDetailPage extends StatelessWidget {
                     ],
                   ),
                 )
+              : _isGridView
+              ? GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: favorites.length,
+                  itemBuilder: (context, index) {
+                    final song = favorites[index];
+                    return _buildGridItem(
+                      context,
+                      song,
+                      playlistProvider,
+                      favorites,
+                    );
+                  },
+                )
               : ListView.separated(
                   itemCount: favorites.length,
                   separatorBuilder: (context, index) => Divider(
@@ -58,74 +96,175 @@ class FavoritesDetailPage extends StatelessWidget {
                   ),
                   itemBuilder: (context, index) {
                     final song = favorites[index];
-                    return ListTile(
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                          image: song.albumArt != null
-                              ? DecorationImage(
-                                  image: MemoryImage(song.albumArt!),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: song.albumArt == null
-                            ? Icon(
-                                Icons.music_note,
-                                color: Theme.of(
-                                  context,
-                                ).iconTheme.color?.withOpacity(0.5),
-                              )
-                            : null,
-                      ),
-                      title: Text(
-                        song.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      subtitle: Text(
-                        song.artist ?? "Unknown Artist",
-                        maxLines: 1,
-                        style: GoogleFonts.inter(
-                          color: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          Icons.favorite,
-                          color: Color(
-                            0xFFD71920,
-                          ), // Always red in this list to indicate it IS a favorite
-                        ),
-                        onPressed: () {
-                          playlistProvider.toggleFavorite(song);
-                        },
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AudioPlayerPage(
-                              audio: song,
-                              playlist: favorites,
-                            ),
-                          ),
-                        );
-                      },
+                    return _buildListItem(
+                      context,
+                      song,
+                      playlistProvider,
+                      favorites,
                     );
                   },
                 ),
         );
       },
+    );
+  }
+
+  Widget _buildListItem(
+    BuildContext context,
+    MediaItem song,
+    PlaylistProvider provider,
+    List<MediaItem> favorites,
+  ) {
+    return ListTile(
+      leading: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          image: song.albumArt != null
+              ? DecorationImage(
+                  image: MemoryImage(song.albumArt!),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: song.albumArt == null
+            ? Icon(
+                Icons.music_note,
+                color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+              )
+            : null,
+      ),
+      title: Text(
+        song.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.inter(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+      ),
+      subtitle: Text(
+        song.artist ?? "Unknown Artist",
+        maxLines: 1,
+        style: GoogleFonts.inter(
+          color: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+          fontSize: 12,
+        ),
+      ),
+      trailing: IconButton(
+        icon: const Icon(
+          Icons.favorite,
+          color: Color(
+            0xFFD71920,
+          ), // Always red in this list to indicate it IS a favorite
+        ),
+        onPressed: () {
+          provider.toggleFavorite(song);
+        },
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AudioPlayerPage(audio: song, playlist: favorites),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGridItem(
+    BuildContext context,
+    MediaItem song,
+    PlaylistProvider provider,
+    List<MediaItem> favorites,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AudioPlayerPage(audio: song, playlist: favorites),
+          ),
+        );
+      },
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: song.albumArt != null
+                        ? Image.memory(song.albumArt!, fit: BoxFit.cover)
+                        : Icon(
+                            Icons.music_note,
+                            size: 50,
+                            color: Theme.of(
+                              context,
+                            ).iconTheme.color?.withOpacity(0.5),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                song.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              Text(
+                song.artist ?? "Unknown Artist",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () {
+                provider.toggleFavorite(song);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.favorite,
+                  color: Color(0xFFD71920),
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

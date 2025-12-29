@@ -30,6 +30,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
   bool _isWheelStyle = true;
   double _volume = 0.5;
   TapDownDetails? _doubleTapDetails;
+  bool _canChangeVolume = false;
 
   @override
   void initState() {
@@ -270,10 +271,26 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                     // Album Art (Conditional Rendering)
                     if (_isWheelStyle)
                       GestureDetector(
-                        onDoubleTapDown: (details) {
-                          _doubleTapDetails = details;
-                        },
+                        onDoubleTapDown: (details) =>
+                            _doubleTapDetails = details,
                         onDoubleTap: _handleDoubleTap,
+                        onVerticalDragStart: (details) {
+                          final dx = details.localPosition.dx;
+                          if (dx < 50 || dx > 250) {
+                            _canChangeVolume = true;
+                          } else {
+                            _canChangeVolume = false;
+                          }
+                        },
+                        onVerticalDragUpdate: (details) {
+                          if (_canChangeVolume) {
+                            final sensitivity = 0.01;
+                            final delta = -details.delta.dy * sensitivity;
+                            _volume = (_volume + delta).clamp(0.0, 1.0);
+                            VolumeController.instance.setVolume(_volume);
+                          }
+                        },
+                        onVerticalDragEnd: (_) => _canChangeVolume = false,
                         child: RotationTransition(
                           turns: _rotateController,
                           child: Container(
@@ -333,10 +350,26 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                     else
                       // Static Square Style
                       GestureDetector(
-                        onDoubleTapDown: (details) {
-                          _doubleTapDetails = details;
-                        },
+                        onDoubleTapDown: (details) =>
+                            _doubleTapDetails = details,
                         onDoubleTap: _handleDoubleTap,
+                        onVerticalDragStart: (details) {
+                          final dx = details.localPosition.dx;
+                          if (dx < 50 || dx > 250) {
+                            _canChangeVolume = true;
+                          } else {
+                            _canChangeVolume = false;
+                          }
+                        },
+                        onVerticalDragUpdate: (details) {
+                          if (_canChangeVolume) {
+                            final sensitivity = 0.01;
+                            final delta = -details.delta.dy * sensitivity;
+                            _volume = (_volume + delta).clamp(0.0, 1.0);
+                            VolumeController.instance.setVolume(_volume);
+                          }
+                        },
+                        onVerticalDragEnd: (_) => _canChangeVolume = false,
                         child: Container(
                           width: 300,
                           height: 300,
@@ -563,29 +596,6 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                     const Spacer(),
                     const SizedBox(height: 24),
                   ],
-                ),
-              ),
-              // Right Edge Volume Gesture
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: 60, // Dedicate right 60px to volume
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onVerticalDragUpdate: (details) async {
-                    final sensitivity = 0.01;
-                    final delta = -details.delta.dy * sensitivity;
-                    _volume = (_volume + delta).clamp(0.0, 1.0);
-
-                    try {
-                      VolumeController.instance.setVolume(_volume);
-                    } catch (e) {
-                      print("Error setting volume: $e");
-                    }
-                  },
-
-                  child: Container(color: Colors.transparent),
                 ),
               ),
             ],

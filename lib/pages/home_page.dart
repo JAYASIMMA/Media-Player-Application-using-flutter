@@ -441,12 +441,8 @@ class _HomePageState extends State<HomePage> {
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => Scaffold(
-                                  appBar: AppBar(
-                                    title: const Text("All Music"),
-                                  ),
-                                  body: MusicPage(mediaService: _mediaService),
-                                ),
+                                builder: (context) =>
+                                    MusicPage(mediaService: _mediaService),
                               ),
                             ),
                             child: const Text(

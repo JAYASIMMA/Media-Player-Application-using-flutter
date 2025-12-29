@@ -7,7 +7,7 @@ import '../services/media_service.dart';
 import 'audio_player_page.dart';
 import 'song_selection_page.dart';
 
-class PlaylistDetailPage extends StatelessWidget {
+class PlaylistDetailPage extends StatefulWidget {
   final String playlistName;
   final MediaService mediaService;
 
@@ -18,15 +18,20 @@ class PlaylistDetailPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    // final isDark = Theme.of(context).brightness == Brightness.dark;
+  State<PlaylistDetailPage> createState() => _PlaylistDetailPageState();
+}
 
+class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
+  bool _isGridView = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Consumer<PlaylistProvider>(
       builder: (context, playlistProvider, child) {
-        final songs = playlistProvider.getPlaylistSongs(playlistName);
+        final songs = playlistProvider.getPlaylistSongs(widget.playlistName);
 
-        // If playlist deleted externally (shouldn't happen often but safe to check)
-        if (!playlistProvider.playlistNames.contains(playlistName)) {
+        // If playlist deleted externally
+        if (!playlistProvider.playlistNames.contains(widget.playlistName)) {
           return const SizedBox();
         }
 
@@ -36,12 +41,22 @@ class PlaylistDetailPage extends StatelessWidget {
             backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
             iconTheme: Theme.of(context).iconTheme,
             title: Text(
-              playlistName,
+              widget.playlistName,
               style: GoogleFonts.notoSans(
                 color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontWeight: FontWeight.bold,
               ),
             ),
+            actions: [
+              IconButton(
+                icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+                onPressed: () {
+                  setState(() {
+                    _isGridView = !_isGridView;
+                  });
+                },
+              ),
+            ],
           ),
           body: songs.isEmpty
               ? Center(
@@ -78,6 +93,26 @@ class PlaylistDetailPage extends StatelessWidget {
                     ],
                   ),
                 )
+              : _isGridView
+              ? GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: songs.length,
+                  itemBuilder: (context, index) {
+                    final song = songs[index];
+                    return _buildGridItem(
+                      context,
+                      song,
+                      playlistProvider,
+                      songs,
+                    );
+                  },
+                )
               : ListView.separated(
                   itemCount: songs.length,
                   separatorBuilder: (context, index) => Divider(
@@ -86,70 +121,11 @@ class PlaylistDetailPage extends StatelessWidget {
                   ),
                   itemBuilder: (context, index) {
                     final song = songs[index];
-                    return ListTile(
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                          image: song.albumArt != null
-                              ? DecorationImage(
-                                  image: MemoryImage(song.albumArt!),
-                                  fit: BoxFit.cover,
-                                )
-                              : null,
-                        ),
-                        child: song.albumArt == null
-                            ? Icon(
-                                Icons.music_note,
-                                color: Theme.of(
-                                  context,
-                                ).iconTheme.color?.withOpacity(0.5),
-                              )
-                            : null,
-                      ),
-                      title: Text(
-                        song.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      subtitle: Text(
-                        song.artist ?? "Unknown Artist",
-                        maxLines: 1,
-                        style: GoogleFonts.inter(
-                          color: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(
-                          Icons.remove_circle_outline,
-                          color: Theme.of(
-                            context,
-                          ).iconTheme.color?.withOpacity(0.5),
-                        ),
-                        onPressed: () {
-                          playlistProvider.removeFromPlaylist(
-                            playlistName,
-                            song,
-                          );
-                        },
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                AudioPlayerPage(audio: song, playlist: songs),
-                          ),
-                        );
-                      },
+                    return _buildListItem(
+                      context,
+                      song,
+                      playlistProvider,
+                      songs,
                     );
                   },
                 ),
@@ -166,12 +142,167 @@ class PlaylistDetailPage extends StatelessWidget {
     );
   }
 
+  Widget _buildListItem(
+    BuildContext context,
+    MediaItem song,
+    PlaylistProvider provider,
+    List<MediaItem> songs,
+  ) {
+    return ListTile(
+      leading: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          image: song.albumArt != null
+              ? DecorationImage(
+                  image: MemoryImage(song.albumArt!),
+                  fit: BoxFit.cover,
+                )
+              : null,
+        ),
+        child: song.albumArt == null
+            ? Icon(
+                Icons.music_note,
+                color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+              )
+            : null,
+      ),
+      title: Text(
+        song.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.inter(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
+      ),
+      subtitle: Text(
+        song.artist ?? "Unknown Artist",
+        maxLines: 1,
+        style: GoogleFonts.inter(
+          color: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+          fontSize: 12,
+        ),
+      ),
+      trailing: IconButton(
+        icon: Icon(
+          Icons.remove_circle_outline,
+          color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+        ),
+        onPressed: () {
+          provider.removeFromPlaylist(widget.playlistName, song);
+        },
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AudioPlayerPage(audio: song, playlist: songs),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGridItem(
+    BuildContext context,
+    MediaItem song,
+    PlaylistProvider provider,
+    List<MediaItem> songs,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AudioPlayerPage(audio: song, playlist: songs),
+          ),
+        );
+      },
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: song.albumArt != null
+                        ? Image.memory(song.albumArt!, fit: BoxFit.cover)
+                        : Icon(
+                            Icons.music_note,
+                            size: 50,
+                            color: Theme.of(
+                              context,
+                            ).iconTheme.color?.withOpacity(0.5),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                song.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+              Text(
+                song.artist ?? "Unknown Artist",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () {
+                provider.removeFromPlaylist(widget.playlistName, song);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.remove_circle_outline,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openSongSelection(
     BuildContext context,
     PlaylistProvider provider,
   ) async {
     // Get all songs from media service (assuming it's loaded)
-    final allSongs = mediaService.music;
+    final allSongs = widget.mediaService.music;
 
     final List<MediaItem>? selectedSongs = await Navigator.push(
       context,
@@ -182,11 +313,13 @@ class PlaylistDetailPage extends StatelessWidget {
 
     if (selectedSongs != null && selectedSongs.isNotEmpty) {
       for (final song in selectedSongs) {
-        provider.addToPlaylist(playlistName, song);
+        provider.addToPlaylist(widget.playlistName, song);
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Added ${selectedSongs.length} songs")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Added ${selectedSongs.length} songs")),
+        );
+      }
     }
   }
 }
