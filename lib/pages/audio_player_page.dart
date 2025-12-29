@@ -226,37 +226,14 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
           ),
           body: Stack(
             children: [
-              GestureDetector(
-                onVerticalDragUpdate: (details) {
-                  // Right side of screen only
-                  if (details.globalPosition.dx >
-                      MediaQuery.of(context).size.width / 2) {
-                    final sensitivity = 0.01;
-                    final delta = -details.delta.dy * sensitivity;
-                    final newVolume = audioProvider.volume + delta;
-                    audioProvider.setVolume(newVolume);
-
-                    // Show volume indicator
-                    setState(() {
-                      _showVolumeIndicator = true;
-                    });
-
-                    _volumeTimer?.cancel();
-                    _volumeTimer = Timer(const Duration(seconds: 2), () {
-                      if (mounted) {
-                        setState(() {
-                          _showVolumeIndicator = false;
-                        });
-                      }
-                    });
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      const Spacer(),
-                      // Album Art (Squared for Nothing look)
+              // Main ContentLayer
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    // Album Art (Conditional Rendering)
+                    if (_isWheelStyle)
                       RotationTransition(
                         turns: _rotateController,
                         child: Container(
@@ -311,176 +288,239 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                             ),
                           ),
                         ),
+                      )
+                    else
+                      // Static Square Style
+                      Container(
+                        width: 300,
+                        height: 300,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.2),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: currentAudio.albumArt != null
+                              ? Image.memory(
+                                  currentAudio.albumArt!,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  color: Colors.grey[900],
+                                  child: const Icon(
+                                    Icons.music_note,
+                                    size: 100,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
                       ),
-                      const Spacer(),
+                    const Spacer(),
 
-                      // Song Info
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  currentAudio.name,
-                                  style: GoogleFonts.ibmPlexSerif(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    height: 1.2,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  currentAudio.artist ?? 'Unknown Artist',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.playlist_add),
-                            onPressed: () =>
-                                _addToPlaylist(context, currentAudio),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Progress Bar
-                      Column(
-                        children: [
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              trackHeight: 2,
-                              activeTrackColor: Theme.of(
-                                context,
-                              ).colorScheme.secondary,
-                              inactiveTrackColor: Colors.grey.withOpacity(0.3),
-                              thumbColor: Theme.of(
-                                context,
-                              ).colorScheme.secondary,
-                              thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 6,
-                              ),
-                              overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 14,
-                              ),
-                            ),
-                            child: Slider(
-                              value: position.inSeconds.toDouble().clamp(
-                                0.0,
-                                duration.inSeconds.toDouble(),
-                              ),
-                              max: duration.inSeconds.toDouble() > 0
-                                  ? duration.inSeconds.toDouble()
-                                  : 1.0,
-                              onChanged: (value) {
-                                audioProvider.seek(
-                                  Duration(seconds: value.toInt()),
-                                );
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _formatDuration(position),
-                                  style: GoogleFonts.spaceMono(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                Text(
-                                  _formatDuration(duration),
-                                  style: GoogleFonts.spaceMono(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Playback Controls
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              audioProvider.isShuffling
-                                  ? Icons.shuffle_on_outlined
-                                  : Icons.shuffle,
-                              color: audioProvider.isShuffling
-                                  ? Theme.of(context).colorScheme.secondary
-                                  : Colors.grey,
-                            ),
-                            onPressed: audioProvider.toggleShuffle,
-                          ),
-                          Row(
+                    // Song Info
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.skip_previous),
-                                iconSize: 32,
-                                onPressed: audioProvider.playPrevious,
-                              ),
-                              const SizedBox(width: 24),
-                              Container(
-                                width: 64,
-                                height: 64,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFD71920), // Nothing Red
-                                  shape: BoxShape.circle,
+                              Text(
+                                currentAudio.name,
+                                style: GoogleFonts.ibmPlexSerif(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1.2,
                                 ),
-                                child: IconButton(
-                                  icon: Icon(
-                                    isPlaying ? Icons.pause : Icons.play_arrow,
-                                  ),
-                                  iconSize: 32,
-                                  color: Colors.white,
-                                  onPressed: audioProvider.togglePlayPause,
-                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(width: 24),
-                              IconButton(
-                                icon: const Icon(Icons.skip_next),
-                                iconSize: 32,
-                                onPressed: audioProvider.playNext,
+                              const SizedBox(height: 4),
+                              Text(
+                                currentAudio.artist ?? 'Unknown Artist',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
                               ),
                             ],
                           ),
-                          IconButton(
-                            icon: Icon(
-                              audioProvider.isRepeating
-                                  ? Icons.repeat_one
-                                  : Icons.repeat,
-                              color: audioProvider.isRepeating
-                                  ? Theme.of(context).colorScheme.secondary
-                                  : Colors.grey,
-                            ),
-                            onPressed: audioProvider.toggleRepeat,
-                          ),
-                        ],
-                      ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.playlist_add),
+                          onPressed: () =>
+                              _addToPlaylist(context, currentAudio),
+                        ),
+                      ],
+                    ),
 
-                      const Spacer(),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
+                    const SizedBox(height: 32),
+
+                    // Progress Bar
+                    Column(
+                      children: [
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 2,
+                            activeTrackColor: Theme.of(
+                              context,
+                            ).colorScheme.secondary,
+                            inactiveTrackColor: Colors.grey.withOpacity(0.3),
+                            thumbColor: Theme.of(context).colorScheme.secondary,
+                            thumbShape: const RoundSliderThumbShape(
+                              enabledThumbRadius: 6,
+                            ),
+                            overlayShape: const RoundSliderOverlayShape(
+                              overlayRadius: 14,
+                            ),
+                          ),
+                          child: Slider(
+                            value: position.inSeconds.toDouble().clamp(
+                              0.0,
+                              duration.inSeconds.toDouble(),
+                            ),
+                            max: duration.inSeconds.toDouble() > 0
+                                ? duration.inSeconds.toDouble()
+                                : 1.0,
+                            onChanged: (value) {
+                              audioProvider.seek(
+                                Duration(seconds: value.toInt()),
+                              );
+                            },
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDuration(position),
+                                style: GoogleFonts.spaceMono(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                _formatDuration(duration),
+                                style: GoogleFonts.spaceMono(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Playback Controls
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            audioProvider.isShuffling
+                                ? Icons.shuffle_on_outlined
+                                : Icons.shuffle,
+                            color: audioProvider.isShuffling
+                                ? Theme.of(context).colorScheme.secondary
+                                : Colors.grey,
+                          ),
+                          onPressed: audioProvider.toggleShuffle,
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.skip_previous),
+                              iconSize: 32,
+                              onPressed: audioProvider.playPrevious,
+                            ),
+                            const SizedBox(width: 24),
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFD71920), // Nothing Red
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  isPlaying ? Icons.pause : Icons.play_arrow,
+                                ),
+                                iconSize: 32,
+                                color: Colors.white,
+                                onPressed: audioProvider.togglePlayPause,
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            IconButton(
+                              icon: const Icon(Icons.skip_next),
+                              iconSize: 32,
+                              onPressed: audioProvider.playNext,
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            audioProvider.isRepeating
+                                ? Icons.repeat_one
+                                : Icons.repeat,
+                            color: audioProvider.isRepeating
+                                ? Theme.of(context).colorScheme.secondary
+                                : Colors.grey,
+                          ),
+                          onPressed: audioProvider.toggleRepeat,
+                        ),
+                      ],
+                    ),
+
+                    const Spacer(),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+              // Right Edge Volume Gesture
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: 60, // Dedicate right 60px to volume
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onVerticalDragUpdate: (details) {
+                    final sensitivity = 0.01;
+                    final delta = -details.delta.dy * sensitivity;
+                    final newVolume = audioProvider.volume + delta;
+                    audioProvider.setVolume(newVolume);
+
+                    // Show volume indicator
+                    setState(() {
+                      _showVolumeIndicator = true;
+                    });
+
+                    _volumeTimer?.cancel();
+                    _volumeTimer = Timer(const Duration(seconds: 2), () {
+                      if (mounted) {
+                        setState(() {
+                          _showVolumeIndicator = false;
+                        });
+                      }
+                    });
+                  },
+                  child: Container(color: Colors.transparent),
                 ),
               ),
               // Volume Indicator Overlay
