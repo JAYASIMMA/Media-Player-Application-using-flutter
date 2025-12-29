@@ -13,6 +13,7 @@ class AudioProvider extends ChangeNotifier {
   MediaItem? _currentAudio;
   List<MediaItem> _playlist = [];
   int _currentIndex = -1;
+  double _volume = 1.0;
 
   AudioProvider() {
     _initAudioPlayer();
@@ -25,6 +26,7 @@ class AudioProvider extends ChangeNotifier {
   Duration get position => _position;
   MediaItem? get currentAudio => _currentAudio;
   List<MediaItem> get playlist => _playlist;
+  double get volume => _volume;
 
   void _initAudioPlayer() {
     // Configure for background playback
@@ -144,6 +146,12 @@ class AudioProvider extends ChangeNotifier {
 
   void toggleRepeat() {
     _isRepeating = !_isRepeating;
+    notifyListeners();
+  }
+
+  Future<void> setVolume(double volume) async {
+    _volume = volume.clamp(0.0, 1.0);
+    await _audioPlayer.setVolume(_volume);
     notifyListeners();
   }
 }
