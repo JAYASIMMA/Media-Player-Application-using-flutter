@@ -1,5 +1,6 @@
 // ==================== lib/services/media_service.dart ====================
 import 'dart:io';
+import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path/path.dart' as path;
 import '../models/media_item.dart';
@@ -15,16 +16,42 @@ class MediaService {
   List<MediaItem> music = [];
 
   Map<String, String> _customThumbnails = {};
+  Map<String, dynamic> _metadataCache = {};
+  File? _cacheFile;
 
   MediaService();
 
+  Future<void> _initCache() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    _cacheFile = File(path.join(appDir.path, 'media_metadata_cache.json'));
+
+    if (await _cacheFile!.exists()) {
+      try {
+        final content = await _cacheFile!.readAsString();
+        _metadataCache = json.decode(content);
+      } catch (e) {
+        print('Error loading cache: $e');
+        _metadataCache = {};
+      }
+    }
+  }
+
+  Future<void> _saveCache() async {
+    if (_cacheFile != null) {
+      try {
+        await _cacheFile!.writeAsString(json.encode(_metadataCache));
+      } catch (e) {
+        print('Error saving cache: $e');
+      }
+    }
+  }
+
   Future<void> _loadCustomThumbnails() async {
     final prefs = await SharedPreferences.getInstance();
-    // Keys format: "thumb_video_path" -> "thumbnail_file_path"
     final keys = prefs.getKeys();
     for (final key in keys) {
       if (key.startsWith('thumb_')) {
-        final videoPath = key.substring(6); // Remove 'thumb_' prefix
+        final videoPath = key.substring(6);
         final thumbPath = prefs.getString(key);
         if (thumbPath != null) {
           _customThumbnails[videoPath] = thumbPath;
@@ -36,7 +63,8 @@ class MediaService {
   Future<void> updateThumbnail(String videoPath, int timeMs) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
-      final thumbFileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final thumbFileName =
+          'custom_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final thumbPath = path.join(appDir.path, thumbFileName);
 
       final uint8list = await VideoThumbnail.thumbnailData(
@@ -56,7 +84,12 @@ class MediaService {
 
         _customThumbnails[videoPath] = thumbPath;
 
-        // Update in-memory list
+        // Also update cache to prevent override
+        if (_metadataCache.containsKey(videoPath)) {
+          _metadataCache[videoPath]['artPath'] = thumbPath;
+          _saveCache();
+        }
+
         final index = videos.indexWhere((v) => v.path == videoPath);
         if (index != -1) {
           videos[index] = videos[index].copyWith(albumArt: uint8list);
@@ -69,28 +102,24 @@ class MediaService {
 
   Future<bool> requestPermissions() async {
     if (Platform.isAndroid) {
-      // For Android 11+ (API 30+)
       if (await Permission.manageExternalStorage.status.isDenied) {
         await Permission.manageExternalStorage.request();
       }
-
       if (await Permission.manageExternalStorage.status.isGranted) {
         return true;
       }
-
-      // For older Android versions
       Map<Permission, PermissionStatus> statuses = await [
         Permission.videos,
         Permission.audio,
         Permission.storage,
       ].request();
-
       return statuses.values.any((status) => status.isGranted);
     }
     return true;
   }
 
   Future<void> loadMedia() async {
+    await _initCache();
     await _loadCustomThumbnails();
     videos.clear();
     music.clear();
@@ -113,7 +142,7 @@ class MediaService {
 
     List<File> allFiles = [];
 
-    // Phase 1: Rapid file collection
+    // Phase 1: File collection
     for (final dirPath in directories) {
       final dir = Directory(dirPath);
       if (await dir.exists()) {
@@ -121,7 +150,7 @@ class MediaService {
       }
     }
 
-    // Phase 2: Processing in batches
+    // Phase 2: Processing
     List<File> videoFiles = [];
     List<File> audioFiles = [];
 
@@ -134,13 +163,11 @@ class MediaService {
       }
     }
 
-    // Process concurrently (batches of 10 to avoid OOM or Channel overloading)
-    // We update the main lists as we go or at the end.
-    // Ideally at the end to prevent partial state, but for speed perception, maybe incrementally?
-    // Let's do batches and add them.
-
     await _processBatch(videoFiles, true);
     await _processBatch(audioFiles, false);
+
+    // Save cache after bulk processing
+    await _saveCache();
   }
 
   Future<void> _collectFiles(Directory dir, List<File> collector) async {
@@ -154,7 +181,7 @@ class MediaService {
         }
       }
     } catch (e) {
-      print('Error collecting files from ${dir.path}: $e');
+      // print('Error collecting files from ${dir.path}: $e');
     }
   }
 
@@ -165,7 +192,7 @@ class MediaService {
       final batch = files.sublist(i, end);
 
       final results = await Future.wait(
-        batch.map((file) => _createMediaItem(file, isVideo: isVideo)),
+        batch.map((file) => _getMediaItem(file, isVideo: isVideo)),
       );
 
       if (isVideo) {
@@ -173,6 +200,8 @@ class MediaService {
       } else {
         music.addAll(results);
       }
+      // Incremental save could be here but might slow things down.
+      // Saving at the very end is usually better for I/O.
     }
   }
 
@@ -209,78 +238,150 @@ class MediaService {
     ].contains(ext);
   }
 
-  Future<MediaItem> _createMediaItem(File file, {required bool isVideo}) async {
-    final stat = await file.stat();
+  Future<MediaItem> _getMediaItem(File file, {required bool isVideo}) async {
+    try {
+      final stat = await file.stat();
+      final lastModified = stat.modified.millisecondsSinceEpoch;
+      final cacheKey = file.path;
+
+      // Check Cache
+      if (_metadataCache.containsKey(cacheKey)) {
+        final entry = _metadataCache[cacheKey];
+        if (entry['lastModified'] == lastModified) {
+          // Cache Hit
+          Uint8List? artBytes;
+
+          // Check for custom override first
+          if (isVideo && _customThumbnails.containsKey(file.path)) {
+            final customPath = _customThumbnails[file.path]!;
+            final customFile = File(customPath);
+            if (await customFile.exists()) {
+              artBytes = await customFile.readAsBytes();
+            }
+          }
+
+          // If no custom or not found, try cached art path
+          if (artBytes == null && entry['artPath'] != null) {
+            final artFile = File(entry['artPath']);
+            if (await artFile.exists()) {
+              artBytes = await artFile.readAsBytes();
+            }
+          }
+
+          return MediaItem(
+            name: entry['name'],
+            path: file.path,
+            duration: entry['duration'],
+            size: entry['size'],
+            artist: entry['artist'],
+            album: entry['album'],
+            albumArt: artBytes,
+          );
+        }
+      }
+
+      // Cache Miss - Extract Real Data
+      return await _createAndCacheMediaItem(file, isVideo, lastModified);
+    } catch (e) {
+      print("Error getting media item: $e");
+      // Fallback
+      return MediaItem(
+        name: path.basenameWithoutExtension(file.path),
+        path: file.path,
+        duration: "00:00",
+        size: "Unknown",
+        artist: isVideo ? null : "Unknown Artist",
+        album: isVideo ? null : "Unknown Album",
+        albumArt: null,
+      );
+    }
+  }
+
+  Future<MediaItem> _createAndCacheMediaItem(
+    File file,
+    bool isVideo,
+    int lastModified,
+  ) async {
     final fileName = path.basenameWithoutExtension(file.path);
+    final stat = await file
+        .stat(); // Size might be needed if not passed (we passed modtime)
     final fileSize = _formatFileSize(stat.size);
 
     Uint8List? albumArt;
     String? artist;
     String? album;
-
     String formattedDuration = '00:00';
-    final videoInfo = FlutterVideoInfo();
 
     if (isVideo) {
+      final videoInfo = FlutterVideoInfo();
       try {
         var info = await videoInfo.getVideoInfo(file.path);
         if (info?.duration != null) {
-          // duration from flutter_video_info is in milliseconds
           formattedDuration = _formatDuration(info!.duration!.toInt());
         }
-      } catch (e) {
-        print('Error extracting video metadata for ${file.path}: $e');
+      } catch (e) {}
+
+      // Custom Check or Generate
+      if (_customThumbnails.containsKey(file.path)) {
+        final f = File(_customThumbnails[file.path]!);
+        if (await f.exists()) albumArt = await f.readAsBytes();
       }
 
-      // Generate Thumbnail
-      if (_customThumbnails.containsKey(file.path)) {
+      if (albumArt == null) {
         try {
-          final thumbFile = File(_customThumbnails[file.path]!);
-          if (await thumbFile.exists()) {
-            albumArt = await thumbFile.readAsBytes();
-          } else {
-            // Fallback if custom file deleted
-            final uint8list = await VideoThumbnail.thumbnailData(
-              video: file.path,
-              imageFormat: ImageFormat.JPEG,
-              maxWidth: 200,
-              quality: 50,
-            );
-            albumArt = uint8list;
-          }
-        } catch (e) {
-          print("Error creating media item with custom thumb: $e");
-        }
-      } else {
-        try {
-          final uint8list = await VideoThumbnail.thumbnailData(
+          albumArt = await VideoThumbnail.thumbnailData(
             video: file.path,
             imageFormat: ImageFormat.JPEG,
-            maxWidth: 200, // Specify the width of the thumbnail
+            maxWidth: 200,
             quality: 50,
           );
-          albumArt = uint8list;
-        } catch (e) {
-          print('Error generating thumbnail for ${file.path}: $e');
-        }
+        } catch (e) {}
       }
     } else {
       try {
         final tag = await AudioTags.read(file.path);
-        // The first picture is usually the cover art
         if (tag?.pictures.isNotEmpty == true) {
           albumArt = tag!.pictures.first.bytes;
         }
         artist = tag?.trackArtist;
         album = tag?.album;
         if (tag?.duration != null) {
-          // duration from audiotags is usually in seconds
           formattedDuration = _formatDuration(tag!.duration! * 1000);
         }
+      } catch (e) {}
+    }
+
+    // Save Art to Disk for Cache
+    String? cachedArtPath;
+    if (albumArt != null) {
+      // Don't save if it's already a custom thumb path, just usage logic.
+      // But for consistency let's save our own cache copy or just use the bytes?
+      // Saving bytes to disk speeds up next read vs decoding video again.
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        final thumbDir = Directory(path.join(appDir.path, 'thumbnails'));
+        if (!await thumbDir.exists()) await thumbDir.create();
+
+        // Use hash or filename as key
+        final artFileName = '${file.path.hashCode}_v1.jpg';
+        final artFile = File(path.join(thumbDir.path, artFileName));
+        await artFile.writeAsBytes(albumArt);
+        cachedArtPath = artFile.path;
       } catch (e) {
-        print('Error extracting metadata for ${file.path}: $e');
+        print("Failed to save cached art: $e");
       }
     }
+
+    // Update Cache Map
+    _metadataCache[file.path] = {
+      'lastModified': lastModified,
+      'name': fileName,
+      'duration': formattedDuration,
+      'size': fileSize,
+      'artist': artist ?? (isVideo ? null : 'Unknown Artist'),
+      'album': album ?? (isVideo ? null : 'Unknown Album'),
+      'artPath': cachedArtPath, // Path to stored image
+    };
 
     return MediaItem(
       name: fileName,
