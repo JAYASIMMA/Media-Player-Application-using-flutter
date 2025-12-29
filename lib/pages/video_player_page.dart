@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import '../models/media_item.dart';
 
@@ -48,9 +49,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading video: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading video: $e')));
       }
     }
   }
@@ -108,7 +109,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     )
                   : const CircularProgressIndicator(color: Colors.blue),
             ),
-            
+
             // Gradient Overlay
             if (_showControls)
               Container(
@@ -126,22 +127,29 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                   ),
                 ),
               ),
-            
+
             // Top Bar
             if (_showControls)
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                       Expanded(
                         child: Text(
                           widget.video.name,
-                          style: const TextStyle(
+                          style: GoogleFonts.ibmPlexSerif(
                             color: Colors.white,
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -151,14 +159,18 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.more_vert, color: Colors.white, size: 28),
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                         onPressed: () {},
                       ),
                     ],
                   ),
                 ),
               ),
-            
+
             // Center Play/Pause Controls
             if (_showControls)
               Center(
@@ -168,14 +180,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     _buildControlButton(
                       icon: Icons.replay_10,
                       onPressed: () {
-                        final newPosition = _controller!.value.position - const Duration(seconds: 10);
-                        _seek(newPosition > Duration.zero ? newPosition : Duration.zero);
+                        final newPosition =
+                            _controller!.value.position -
+                            const Duration(seconds: 10);
+                        _seek(
+                          newPosition > Duration.zero
+                              ? newPosition
+                              : Duration.zero,
+                        );
                       },
                     ),
                     const SizedBox(width: 40),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: const Color(0xFFD71920), // Nothing Red
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(
@@ -191,16 +209,24 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     _buildControlButton(
                       icon: Icons.forward_10,
                       onPressed: () {
-                        final newPosition = _controller!.value.position + const Duration(seconds: 10);
-                        _seek(newPosition < _controller!.value.duration ? newPosition : _controller!.value.duration);
+                        final newPosition =
+                            _controller!.value.position +
+                            const Duration(seconds: 10);
+                        _seek(
+                          newPosition < _controller!.value.duration
+                              ? newPosition
+                              : _controller!.value.duration,
+                        );
                       },
                     ),
                   ],
                 ),
               ),
-            
+
             // Bottom Controls
-            if (_showControls && _controller != null && _controller!.value.isInitialized)
+            if (_showControls &&
+                _controller != null &&
+                _controller!.value.isInitialized)
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -215,37 +241,53 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           children: [
                             Text(
                               _formatDuration(_controller!.value.position),
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              style: GoogleFonts.spaceMono(
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
                             ),
                             Expanded(
                               child: SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
                                   trackHeight: 3,
-                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 6,
+                                  ),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 14,
+                                  ),
                                 ),
                                 child: Slider(
-                                  value: _controller!.value.position.inSeconds.toDouble(),
-                                  max: _controller!.value.duration.inSeconds.toDouble(),
+                                  value: _controller!.value.position.inSeconds
+                                      .toDouble(),
+                                  max: _controller!.value.duration.inSeconds
+                                      .toDouble(),
                                   onChanged: (value) {
                                     _seek(Duration(seconds: value.toInt()));
                                   },
-                                  activeColor: Colors.blue,
+                                  activeColor: const Color(0xFFD71920),
                                   inactiveColor: Colors.white30,
                                 ),
                               ),
                             ),
                             Text(
                               _formatDuration(_controller!.value.duration),
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              style: GoogleFonts.spaceMono(
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      
+
                       // Bottom Buttons
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 16, left: 16, right: 16),
+                        padding: const EdgeInsets.only(
+                          bottom: 16,
+                          left: 16,
+                          right: 16,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -266,7 +308,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     );
   }
 
-  Widget _buildControlButton({required IconData icon, required VoidCallback onPressed}) {
+  Widget _buildControlButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.5),
@@ -289,7 +334,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         ),
         Text(
           label,
-          style: const TextStyle(color: Colors.white, fontSize: 11),
+          style: GoogleFonts.spaceMono(color: Colors.white, fontSize: 11),
         ),
       ],
     );

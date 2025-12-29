@@ -35,6 +35,7 @@ class FoldersPage extends StatelessWidget {
       itemBuilder: (context, index) {
         final folder = folders[index];
         final count = folder['count'] as int;
+
         final folderName = folder['name'] as String;
         final folderPath = folder['path'] as String;
 
@@ -58,21 +59,10 @@ class FoldersPage extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15),
           ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 4),
-              Text(
-                '$count items',
-                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-              ),
-              Text(
-                folderPath,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-              ),
-            ],
+
+          subtitle: Text(
+            '$count items',
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
           onTap: () {

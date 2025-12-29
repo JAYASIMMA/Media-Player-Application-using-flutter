@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import 'pages/home_page.dart';
 import 'services/theme_provider.dart';
 import 'services/audio_provider.dart';
+
 import 'services/playlist_provider.dart';
+import 'services/settings_provider.dart';
 import 'themes/nothing_theme.dart';
 
 Future<void> main() async {
@@ -16,6 +18,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AudioProvider()),
         ChangeNotifierProvider(create: (_) => PlaylistProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: const MediaPlayerApp(),
     ),
