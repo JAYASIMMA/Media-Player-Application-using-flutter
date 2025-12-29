@@ -10,6 +10,7 @@ class MediaItem {
   final Uint8List? albumArt;
   final String? artist;
   final String? album;
+  final List<String> tags;
 
   MediaItem({
     required this.name,
@@ -20,5 +21,6 @@ class MediaItem {
     this.albumArt,
     this.artist,
     this.album,
+    this.tags = const [],
   });
 }

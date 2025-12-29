@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../../models/media_item.dart';
 import '../../services/media_service.dart';
@@ -69,6 +68,37 @@ class VideosPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
+                // Tags Row
+                if (video.tags.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Wrap(
+                      spacing: 4,
+                      children: video.tags.map((tag) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.secondary,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(context).colorScheme.secondary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 Text(
                   video.duration,
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),

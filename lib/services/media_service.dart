@@ -119,6 +119,11 @@ class MediaService {
 
     String formattedDuration = '00:00';
     final videoInfo = FlutterVideoInfo();
+    List<String> tags = [];
+
+    // Add format tag (e.g., MP4, MKV)
+    String ext = path.extension(file.path).toUpperCase().replaceAll('.', '');
+    if (ext.isNotEmpty) tags.add(ext);
 
     if (isVideo) {
       try {
@@ -126,6 +131,23 @@ class MediaService {
         if (info?.duration != null) {
           // duration from flutter_video_info is in milliseconds
           formattedDuration = _formatDuration(info!.duration!.toInt());
+        }
+
+        // Calculate Quality Tag
+        if (info?.height != null && info?.width != null) {
+          int height = info!.height!;
+          int width = info.width!;
+          // Handle orientation rotation swapping if needed, usually minor for simple tagging
+          // Simple logic based on standard vertical resolutions
+          if (height >= 2160 || width >= 3840) {
+            tags.add('4K');
+          } else if (height >= 1080 || width >= 1920) {
+            tags.add('1080p');
+          } else if (height >= 720 || width >= 1280) {
+            tags.add('720p');
+          } else if (height > 0) {
+            tags.add('${height}p');
+          }
         }
       } catch (e) {
         print('Error extracting video metadata for ${file.path}: $e');
@@ -148,14 +170,19 @@ class MediaService {
       }
     }
 
+    // Get thumbnail for video
+    // ... (existing code for thumbnail) ...
+
     return MediaItem(
       name: fileName,
       path: file.path,
       duration: formattedDuration,
       size: fileSize,
+      thumbnail: null, // Thumbnail generation placeholder
+      albumArt: albumArt,
       artist: artist ?? (isVideo ? null : 'Unknown Artist'),
       album: album ?? (isVideo ? null : 'Unknown Album'),
-      albumArt: albumArt,
+      tags: tags,
     );
   }
 
