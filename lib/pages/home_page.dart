@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/audio_provider.dart';
+import '../services/audio_provider.dart' as Service;
 import '../services/theme_provider.dart';
 import '../services/media_service.dart';
 import '../models/media_item.dart';
@@ -122,19 +122,18 @@ class _HomePageState extends State<HomePage> {
                                   flex: 2,
                                   child: NothingWidgetContainer(
                                     onTap: () {
-                                      final audioProvider =
-                                          Provider.of<AudioProvider>(
+                                      final provider =
+                                          Provider.of<Service.AudioProvider>(
                                             context,
                                             listen: false,
                                           );
-                                      if (audioProvider.currentAudio != null) {
+                                      if (provider.currentAudio != null) {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (_) => AudioPlayerPage(
-                                              audio:
-                                                  audioProvider.currentAudio!,
-                                              playlist: audioProvider.playlist,
+                                              audio: provider.currentAudio!,
+                                              playlist: provider.playlist,
                                             ),
                                           ),
                                         );

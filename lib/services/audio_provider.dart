@@ -28,24 +28,24 @@ class AudioProvider extends ChangeNotifier {
 
   void _initAudioPlayer() {
     // Configure for background playback
-    _audioPlayer.setAudioContext(
-      AudioContext(
-        iOS: AudioContextIOS(
-          category: AVAudioSessionCategory.playback,
-          options: {
-            AVAudioSessionOptions.defaultToSpeaker,
-            AVAudioSessionOptions.allowAirPlay,
-          },
-        ),
-        android: AudioContextAndroid(
-          isSpeakerphoneOn: true,
-          stayAwake: true,
-          contentType: AndroidContentType.music,
-          usageType: AndroidUsageType.media,
-          audioFocus: AndroidAudioFocus.gain,
-        ),
-      ),
-    );
+    // _audioPlayer.setAudioContext(
+    //   AudioContext(
+    //     iOS: AudioContextIOS(
+    //       category: AVAudioSessionCategory.playback,
+    //       options: {
+    //         AVAudioSessionOptions.defaultToSpeaker,
+    //         AVAudioSessionOptions.allowAirPlay,
+    //       },
+    //     ),
+    //     android: AudioContextAndroid(
+    //       isSpeakerphoneOn: true,
+    //       stayAwake: true,
+    //       contentType: AndroidContentType.music,
+    //       usageType: AndroidUsageType.media,
+    //       audioFocus: AndroidAudioFocus.gain,
+    //     ),
+    //   ),
+    // );
 
     _audioPlayer.onDurationChanged.listen((duration) {
       _duration = duration;
