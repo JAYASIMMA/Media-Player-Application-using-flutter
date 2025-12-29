@@ -311,7 +311,15 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
               value: isSelected,
               onChanged: (val) => _toggleSelection(song.path),
             )
-          : null,
+          : IconButton(
+              icon: Icon(
+                Icons.remove_circle_outline,
+                color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+              ),
+              onPressed: () {
+                provider.removeFromPlaylist(widget.playlistName, song);
+              },
+            ),
       onLongPress: () => _enterSelectionMode(song.path),
       onTap: () {
         if (_isSelectionMode) {
@@ -417,6 +425,30 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                       ? Icons.check_circle
                       : Icons.radio_button_unchecked,
                   color: isSelected ? Colors.red : Colors.grey,
+                ),
+              ),
+            ),
+          // Existing quick remove button - hide in selection mode to avoid confusion?
+          // User asked for long press select to remove.
+          if (!_isSelectionMode)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: () {
+                  provider.removeFromPlaylist(widget.playlistName, song);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.remove_circle_outline,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
               ),
             ),
