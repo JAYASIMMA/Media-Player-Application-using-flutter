@@ -357,10 +357,8 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                         Container(
                           width: 64,
                           height: 64,
-                          decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.secondary, // Red accent
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFD71920), // Nothing Red
                             shape: BoxShape.circle,
                           ),
                           child: IconButton(
