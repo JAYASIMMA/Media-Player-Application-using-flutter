@@ -37,14 +37,17 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _requestPermissionsAndLoadMedia() async {
     setState(() => _isLoading = true);
-    await _mediaService.requestPermissions();
-    await _mediaService.loadMedia();
-
     if (mounted) {
       final playlistProv = Provider.of<PlaylistProv.PlaylistProvider>(
         context,
         listen: false,
       );
+      // Initialize playlist provider to load persisted paths
+      await playlistProv.init();
+
+      await _mediaService.requestPermissions();
+      await _mediaService.loadMedia();
+
       // Combine music and videos for syncing
       final allMedia = [..._mediaService.music, ..._mediaService.videos];
       playlistProv.syncWithLibrary(allMedia);

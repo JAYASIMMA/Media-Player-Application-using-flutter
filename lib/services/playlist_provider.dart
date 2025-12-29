@@ -12,8 +12,10 @@ class PlaylistProvider extends ChangeNotifier {
   List<MediaItem> get favorites => List.unmodifiable(_favorites);
   int get favoriteCount => _favorites.length;
 
-  PlaylistProvider() {
-    _loadData();
+  PlaylistProvider();
+
+  Future<void> init() async {
+    await _loadData();
   }
 
   List<MediaItem> getPlaylistSongs(String playlistName) {

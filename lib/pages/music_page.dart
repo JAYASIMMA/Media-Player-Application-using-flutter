@@ -1,7 +1,9 @@
 // ==================== lib/pages/music_page.dart ====================
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/media_item.dart';
 import '../services/media_service.dart';
+import '../services/settings_provider.dart';
 import 'audio_player_page.dart';
 
 class MusicPage extends StatefulWidget {
@@ -14,22 +16,19 @@ class MusicPage extends StatefulWidget {
 }
 
 class _MusicPageState extends State<MusicPage> {
-  bool _isGridView = false;
-
   @override
   Widget build(BuildContext context) {
     final music = widget.mediaService.music;
+    final settings = Provider.of<SettingsProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("All Music"),
         actions: [
           IconButton(
-            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+            icon: Icon(settings.isSongGrid ? Icons.view_list : Icons.grid_view),
             onPressed: () {
-              setState(() {
-                _isGridView = !_isGridView;
-              });
+              settings.toggleSongView();
             },
           ),
         ],
@@ -58,7 +57,7 @@ class _MusicPageState extends State<MusicPage> {
                 await widget.mediaService.loadMedia();
                 setState(() {});
               },
-              child: _isGridView
+              child: settings.isSongGrid
                   ? GridView.builder(
                       padding: const EdgeInsets.all(16),
                       gridDelegate:
