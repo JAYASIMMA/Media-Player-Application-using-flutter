@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
+import 'dart:async';
 import '../models/media_item.dart';
 
 class VideoPlayerPage extends StatefulWidget {
@@ -20,6 +21,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   bool _isPlaying = false;
   bool _showControls = true;
   bool _isFullscreen = false;
+  Timer? _hideTimer;
 
   @override
   void initState() {
@@ -31,6 +33,22 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     _initializeVideo();
+    _startHideTimer();
+  }
+
+  void _startHideTimer() {
+    _hideTimer?.cancel();
+    _hideTimer = Timer(const Duration(milliseconds: 3500), () {
+      if (mounted) {
+        setState(() {
+          _showControls = false;
+        });
+      }
+    });
+  }
+
+  void _cancelHideTimer() {
+    _hideTimer?.cancel();
   }
 
   void _initializeVideo() async {
@@ -58,6 +76,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   @override
   void dispose() {
+    _cancelHideTimer();
     _controller?.dispose();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -74,12 +93,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           _controller!.play();
           _isPlaying = true;
         }
+        _startHideTimer();
       });
     }
   }
 
   void _seek(Duration position) {
     _controller?.seekTo(position);
+    _startHideTimer();
   }
 
   String _formatDuration(Duration duration) {
@@ -96,7 +117,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       backgroundColor: Colors.black,
       body: GestureDetector(
         onTap: () {
-          setState(() => _showControls = !_showControls);
+          setState(() {
+            _showControls = !_showControls;
+            if (_showControls) {
+              _startHideTimer();
+            } else {
+              _cancelHideTimer();
+            }
+          });
         },
         child: Stack(
           children: [
