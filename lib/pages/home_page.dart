@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/media_item.dart';
-import '../services/media_service.dart';
+import '../services/audio_provider.dart';
 import '../services/theme_provider.dart';
+import '../services/media_service.dart';
+import '../models/media_item.dart';
 import '../widgets/album_card.dart';
 import '../widgets/playback_time_widget.dart';
 import '../widgets/nothing_widget_container.dart';
@@ -120,6 +121,25 @@ class _HomePageState extends State<HomePage> {
                                 Expanded(
                                   flex: 2,
                                   child: NothingWidgetContainer(
+                                    onTap: () {
+                                      final audioProvider =
+                                          Provider.of<AudioProvider>(
+                                            context,
+                                            listen: false,
+                                          );
+                                      if (audioProvider.currentAudio != null) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => AudioPlayerPage(
+                                              audio:
+                                                  audioProvider.currentAudio!,
+                                              playlist: audioProvider.playlist,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
                                     child: const PlaybackTimeWidget(),
                                   ),
                                 ),
@@ -428,10 +448,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(icon, size: 24),
             const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(label, style: const TextStyle(fontSize: 12)),
-            ),
+            Text(label, style: const TextStyle(fontSize: 12)),
           ],
         ),
       ),
