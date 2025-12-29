@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/media_item.dart';
 import '../services/audio_provider.dart';
 import '../services/playlist_provider.dart';
+import 'package:volume_controller/volume_controller.dart';
 
 class AudioPlayerPage extends StatefulWidget {
   final MediaItem audio;
@@ -27,8 +28,7 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
   late AnimationController _rotateController;
   bool _isInit = false;
   bool _isWheelStyle = true;
-  bool _showVolumeIndicator = false;
-  Timer? _volumeTimer;
+  double _volume = 0.5;
 
   @override
   void initState() {
@@ -37,6 +37,16 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
       vsync: this,
       duration: const Duration(seconds: 10),
     )..repeat();
+    _initVolume();
+  }
+
+  void _initVolume() async {
+    try {
+      _volume = await VolumeController.instance.getVolume();
+      if (mounted) setState(() {});
+    } catch (e) {
+      print("Error getting volume: $e");
+    }
   }
 
   @override
@@ -500,82 +510,21 @@ class _AudioPlayerPageState extends State<AudioPlayerPage>
                 width: 60, // Dedicate right 60px to volume
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
-                  onVerticalDragUpdate: (details) {
+                  onVerticalDragUpdate: (details) async {
                     final sensitivity = 0.01;
                     final delta = -details.delta.dy * sensitivity;
-                    final newVolume = audioProvider.volume + delta;
-                    audioProvider.setVolume(newVolume);
+                    _volume = (_volume + delta).clamp(0.0, 1.0);
 
-                    // Show volume indicator
-                    setState(() {
-                      _showVolumeIndicator = true;
-                    });
-
-                    _volumeTimer?.cancel();
-                    _volumeTimer = Timer(const Duration(seconds: 2), () {
-                      if (mounted) {
-                        setState(() {
-                          _showVolumeIndicator = false;
-                        });
-                      }
-                    });
+                    try {
+                      VolumeController.instance.setVolume(_volume);
+                    } catch (e) {
+                      print("Error setting volume: $e");
+                    }
                   },
+
                   child: Container(color: Colors.transparent),
                 ),
               ),
-              // Volume Indicator Overlay
-              if (_showVolumeIndicator)
-                Positioned(
-                  left: 20,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: Container(
-                      width: 50,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: Icon(
-                              Icons.volume_up,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: RotatedBox(
-                                quarterTurns: 3,
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 4,
-                                    thumbShape: SliderComponentShape.noThumb,
-                                    overlayShape:
-                                        SliderComponentShape.noOverlay,
-                                    activeTrackColor: Colors.white,
-                                    inactiveTrackColor: Colors.white
-                                        .withOpacity(0.3),
-                                  ),
-                                  child: Slider(
-                                    value: audioProvider.volume,
-                                    onChanged: (_) {}, // Read-only
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         );
