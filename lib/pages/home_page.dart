@@ -15,6 +15,7 @@ import 'folders_page.dart';
 import 'settings_page.dart';
 import 'playlist_page.dart';
 import 'audio_player_page.dart';
+import 'favorites_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -241,34 +242,13 @@ class _HomePageState extends State<HomePage> {
                                     builder: (context, playlistProvider, child) {
                                       return NothingWidgetContainer(
                                         onTap: () {
-                                          if (playlistProvider
-                                              .favorites
-                                              .isNotEmpty) {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    AudioPlayerPage(
-                                                      audio: playlistProvider
-                                                          .favorites
-                                                          .first,
-                                                      playlist: playlistProvider
-                                                          .favorites,
-                                                      autoplay: false,
-                                                    ),
-                                              ),
-                                            );
-                                          } else {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  "No favorites yet!",
-                                                ),
-                                              ),
-                                            );
-                                          }
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const FavoritesDetailPage(),
+                                            ),
+                                          );
                                         },
                                         child: Column(
                                           crossAxisAlignment:

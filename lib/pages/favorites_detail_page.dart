@@ -1,34 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../models/media_item.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/playlist_provider.dart';
-import '../services/media_service.dart';
-import 'audio_player_page.dart';
-import 'song_selection_page.dart';
+import '../pages/audio_player_page.dart';
 
-class PlaylistDetailPage extends StatelessWidget {
-  final String playlistName;
-  final MediaService mediaService;
-
-  const PlaylistDetailPage({
-    Key? key,
-    required this.playlistName,
-    required this.mediaService,
-  }) : super(key: key);
+class FavoritesDetailPage extends StatelessWidget {
+  const FavoritesDetailPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Consumer<PlaylistProvider>(
       builder: (context, playlistProvider, child) {
-        final songs = playlistProvider.getPlaylistSongs(playlistName);
-
-        // If playlist deleted externally (shouldn't happen often but safe to check)
-        if (!playlistProvider.playlistNames.contains(playlistName)) {
-          return const SizedBox();
-        }
+        final favorites = playlistProvider.favorites;
 
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -36,20 +19,20 @@ class PlaylistDetailPage extends StatelessWidget {
             backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
             iconTheme: Theme.of(context).iconTheme,
             title: Text(
-              playlistName,
+              "Favorites",
               style: GoogleFonts.notoSans(
                 color: Theme.of(context).textTheme.bodyLarge?.color,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          body: songs.isEmpty
+          body: favorites.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.queue_music,
+                        Icons.favorite_border,
                         size: 80,
                         color: Theme.of(
                           context,
@@ -57,35 +40,24 @@ class PlaylistDetailPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "Playlist is empty",
+                        "No favorites yet",
                         style: GoogleFonts.spaceMono(
                           color: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.color?.withOpacity(0.6),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD71920),
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () =>
-                            _openSongSelection(context, playlistProvider),
-                        icon: const Icon(Icons.add),
-                        label: const Text("ADD SONGS"),
-                      ),
                     ],
                   ),
                 )
               : ListView.separated(
-                  itemCount: songs.length,
+                  itemCount: favorites.length,
                   separatorBuilder: (context, index) => Divider(
                     color: Theme.of(context).dividerColor.withOpacity(0.1),
                     height: 1,
                   ),
                   itemBuilder: (context, index) {
-                    final song = songs[index];
+                    final song = favorites[index];
                     return ListTile(
                       leading: Container(
                         width: 50,
@@ -128,65 +100,32 @@ class PlaylistDetailPage extends StatelessWidget {
                         ),
                       ),
                       trailing: IconButton(
-                        icon: Icon(
-                          Icons.remove_circle_outline,
-                          color: Theme.of(
-                            context,
-                          ).iconTheme.color?.withOpacity(0.5),
+                        icon: const Icon(
+                          Icons.favorite,
+                          color: Color(
+                            0xFFD71920,
+                          ), // Always red in this list to indicate it IS a favorite
                         ),
                         onPressed: () {
-                          playlistProvider.removeFromPlaylist(
-                            playlistName,
-                            song,
-                          );
+                          playlistProvider.toggleFavorite(song);
                         },
                       ),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                AudioPlayerPage(audio: song, playlist: songs),
+                            builder: (context) => AudioPlayerPage(
+                              audio: song,
+                              playlist: favorites,
+                            ),
                           ),
                         );
                       },
                     );
                   },
                 ),
-          floatingActionButton: songs.isNotEmpty
-              ? FloatingActionButton(
-                  backgroundColor: const Color(0xFFD71920),
-                  child: const Icon(Icons.add, color: Colors.white),
-                  onPressed: () =>
-                      _openSongSelection(context, playlistProvider),
-                )
-              : null,
         );
       },
     );
-  }
-
-  void _openSongSelection(
-    BuildContext context,
-    PlaylistProvider provider,
-  ) async {
-    // Get all songs from media service (assuming it's loaded)
-    final allSongs = mediaService.music;
-
-    final List<MediaItem>? selectedSongs = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SongSelectionPage(allSongs: allSongs),
-      ),
-    );
-
-    if (selectedSongs != null && selectedSongs.isNotEmpty) {
-      for (final song in selectedSongs) {
-        provider.addToPlaylist(playlistName, song);
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Added ${selectedSongs.length} songs")),
-      );
-    }
   }
 }
