@@ -156,16 +156,18 @@ class _HomePageState extends State<HomePage> {
                                           isDark
                                               ? Icons.light_mode
                                               : Icons.dark_mode,
-                                          size: 32,
+                                          size: 36, // Increased from 32
                                           color: Theme.of(
                                             context,
                                           ).colorScheme.onSurface,
                                         ),
-                                        const SizedBox(height: 8),
+                                        const SizedBox(
+                                          height: 12,
+                                        ), // Increased from 8
                                         Text(
                                           isDark ? "Light" : "Dark",
                                           style: const TextStyle(
-                                            fontSize: 12,
+                                            fontSize: 14, // Increased from 12
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -194,7 +196,9 @@ class _HomePageState extends State<HomePage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.all(8),
+                                          padding: const EdgeInsets.all(
+                                            12,
+                                          ), // Increased from 8
                                           decoration: BoxDecoration(
                                             color: Theme.of(
                                               context,
@@ -204,7 +208,7 @@ class _HomePageState extends State<HomePage> {
                                           child: const Icon(
                                             Icons.music_note,
                                             color: Colors.white,
-                                            size: 20,
+                                            size: 24, // Increased from 20
                                           ),
                                         ),
                                         Column(
@@ -214,7 +218,8 @@ class _HomePageState extends State<HomePage> {
                                             Text(
                                               '$totalSongs',
                                               style: GoogleFonts.spaceMono(
-                                                fontSize: 32,
+                                                fontSize:
+                                                    42, // Increased from 32
                                                 fontWeight: FontWeight.bold,
                                                 height: 1.0,
                                               ),
@@ -223,6 +228,8 @@ class _HomePageState extends State<HomePage> {
                                             Text(
                                               "Songs",
                                               style: TextStyle(
+                                                fontSize:
+                                                    16, // Added explicit larger size
                                                 color: Theme.of(context)
                                                     .textTheme
                                                     .bodyMedium
@@ -257,7 +264,9 @@ class _HomePageState extends State<HomePage> {
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             Container(
-                                              padding: const EdgeInsets.all(8),
+                                              padding: const EdgeInsets.all(
+                                                12,
+                                              ), // Increased from 8
                                               decoration: const BoxDecoration(
                                                 color: Color(0xFFD71920),
                                                 shape: BoxShape.circle,
@@ -265,7 +274,7 @@ class _HomePageState extends State<HomePage> {
                                               child: const Icon(
                                                 Icons.favorite,
                                                 color: Colors.white,
-                                                size: 20,
+                                                size: 24, // Increased from 20
                                               ),
                                             ),
                                             Column(
@@ -275,7 +284,8 @@ class _HomePageState extends State<HomePage> {
                                                 Text(
                                                   '${playlistProvider.favoriteCount}',
                                                   style: GoogleFonts.spaceMono(
-                                                    fontSize: 32,
+                                                    fontSize:
+                                                        42, // Increased from 32
                                                     fontWeight: FontWeight.bold,
                                                     height: 1.0,
                                                   ),
@@ -284,6 +294,8 @@ class _HomePageState extends State<HomePage> {
                                                 Text(
                                                   "Favorites",
                                                   style: TextStyle(
+                                                    fontSize:
+                                                        16, // Added explicit larger size
                                                     color: Theme.of(context)
                                                         .textTheme
                                                         .bodyMedium
@@ -306,7 +318,9 @@ class _HomePageState extends State<HomePage> {
                           // Row 3: Quick Actions
                           IntrinsicHeight(
                             child: NothingWidgetContainer(
-                              padding: EdgeInsets.zero,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 20,
+                              ), // Added vertical padding
                               child: Row(
                                 children: [
                                   _buildQuickAction(
@@ -480,13 +494,17 @@ class _HomePageState extends State<HomePage> {
   ) {
     return Expanded(
       child: InkWell(
+        // Using InkWell for tap effect
         onTap: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24),
-            const SizedBox(height: 4),
-            Text(label, style: const TextStyle(fontSize: 12)),
+            Icon(icon, size: 32), // Increased from 24
+            const SizedBox(height: 8), // Increased from 4
+            Text(
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ), // Increased from 12
           ],
         ),
       ),
