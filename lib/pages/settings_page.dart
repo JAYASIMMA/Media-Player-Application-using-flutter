@@ -17,7 +17,7 @@ class SettingsPage extends StatelessWidget {
             children: [
               ListTile(
                 title: const Text('Theme'),
-                leading: const Icon(Icons.brightness_6),
+                leading: Icon(_getThemeIcon(themeProvider.themeMode)),
                 subtitle: Text(_getThemeText(themeProvider.themeMode)),
                 onTap: () => _showThemeDialog(context, themeProvider),
               ),
@@ -65,6 +65,17 @@ class SettingsPage extends StatelessWidget {
         return 'Light Mode';
       case ThemeMode.dark:
         return 'Dark Mode';
+    }
+  }
+
+  IconData _getThemeIcon(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.system:
+        return Icons.brightness_auto;
+      case ThemeMode.light:
+        return Icons.light_mode;
+      case ThemeMode.dark:
+        return Icons.dark_mode;
     }
   }
 

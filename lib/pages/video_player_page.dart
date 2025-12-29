@@ -22,6 +22,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   bool _showControls = true;
   bool _isFullscreen = false;
   Timer? _hideTimer;
+  TapDownDetails? _doubleTapDetails;
 
   @override
   void initState() {
@@ -103,6 +104,47 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     _startHideTimer();
   }
 
+  void _seekRelative(Duration duration) {
+    if (_controller != null && _controller!.value.isInitialized) {
+      final newPosition = _controller!.value.position + duration;
+      final end = _controller!.value.duration;
+      if (newPosition < Duration.zero) {
+        _controller!.seekTo(Duration.zero);
+      } else if (newPosition > end) {
+        _controller!.seekTo(end);
+      } else {
+        _controller!.seekTo(newPosition);
+      }
+      _startHideTimer();
+    }
+  }
+
+  void _handleDoubleTap() {
+    if (_doubleTapDetails == null) return;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final tapPosition = _doubleTapDetails!.globalPosition.dx;
+
+    if (tapPosition < screenWidth / 3) {
+      // Left side: rewind 10 seconds
+      _seekRelative(const Duration(seconds: -10));
+    } else if (tapPosition > 2 * screenWidth / 3) {
+      // Right side: maximize 10 seconds
+      _seekRelative(const Duration(seconds: 10));
+    } else {
+      // Center: toggle play/pause
+      _togglePlayPause();
+    }
+  }
+
+  void _handleHorizontalDragUpdate(DragUpdateDetails details) {
+    // Swipe left = rewind, Swipe right = forward
+    // Adjust sensitivity as needed, e.g., 1 second per 10 pixels
+    int seconds = (details.primaryDelta! / 5).round();
+    if (seconds != 0) {
+      _seekRelative(Duration(seconds: seconds));
+    }
+  }
+
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = duration.inHours;
@@ -126,6 +168,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             }
           });
         },
+        onDoubleTapDown: (details) {
+          _doubleTapDetails = details;
+        },
+        onDoubleTap: _handleDoubleTap,
+        onHorizontalDragUpdate: _handleHorizontalDragUpdate,
         child: Stack(
           children: [
             // Video Player
