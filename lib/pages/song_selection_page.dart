@@ -16,14 +16,16 @@ class _SongSelectionPageState extends State<SongSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           "Select Songs",
-          style: GoogleFonts.ibmPlexSerif(color: Colors.white),
+          style: GoogleFonts.ibmPlexSerif(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
         ),
         actions: [
           if (_selectedSongs.isNotEmpty)
@@ -43,21 +45,25 @@ class _SongSelectionPageState extends State<SongSelectionPage> {
       ),
       body: ListView.separated(
         itemCount: widget.allSongs.length,
-        separatorBuilder: (context, index) =>
-            const Divider(color: Colors.white24, height: 1),
+        separatorBuilder: (context, index) => Divider(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          height: 1,
+        ),
         itemBuilder: (context, index) {
           final song = widget.allSongs[index];
           final isSelected = _selectedSongs.contains(song);
 
           return ListTile(
-            tileColor: isSelected ? Colors.white10 : null,
+            tileColor: isSelected
+                ? (isDark ? Colors.white10 : Colors.black12)
+                : null,
             leading: Stack(
               children: [
                 Container(
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.grey[900],
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
                     image: song.albumArt != null
                         ? DecorationImage(
@@ -67,7 +73,12 @@ class _SongSelectionPageState extends State<SongSelectionPage> {
                         : null,
                   ),
                   child: song.albumArt == null
-                      ? const Icon(Icons.music_note, color: Colors.grey)
+                      ? Icon(
+                          Icons.music_note,
+                          color: Theme.of(
+                            context,
+                          ).iconTheme.color?.withOpacity(0.5),
+                        )
                       : null,
                 ),
                 if (isSelected)
@@ -86,12 +97,19 @@ class _SongSelectionPageState extends State<SongSelectionPage> {
               song.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.inter(color: Colors.white),
+              style: GoogleFonts.inter(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
             ),
             subtitle: Text(
               song.artist ?? "Unknown Artist",
               maxLines: 1,
-              style: GoogleFonts.inter(color: Colors.grey, fontSize: 12),
+              style: GoogleFonts.inter(
+                color: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                fontSize: 12,
+              ),
             ),
             trailing: Checkbox(
               value: isSelected,
