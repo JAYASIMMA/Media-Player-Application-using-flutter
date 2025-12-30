@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:media_player/pages/home_page.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -7,7 +8,7 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Determine colors based on theme, though Nothing theme is usually monochrome
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final primaryColor = Theme.of(
       context,
     ).colorScheme.secondary; // Usually red in NothingOS
@@ -84,12 +85,19 @@ class WelcomePage extends StatelessWidget {
               // Get Started Button
               Center(
                 child: GestureDetector(
-                  onTap: () {
-                    // Navigate to Home Page with a replacement to prevent going back
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HomePage()),
-                    );
+                  onTap: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('has_seen_welcome', true);
+
+                    if (context.mounted) {
+                      // Navigate to Home Page with a replacement to prevent going back
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                      );
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
