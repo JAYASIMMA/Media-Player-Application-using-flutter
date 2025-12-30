@@ -96,11 +96,11 @@ class _MusicPageState extends State<MusicPage> {
                           },
                         ),
                 ),
-          const Positioned(
+          Positioned(
             left: 24,
             right: 24,
             bottom: 24,
-            child: CustomBottomNavBar(),
+            child: CustomBottomNavBar(mediaService: widget.mediaService),
           ),
         ],
       ),

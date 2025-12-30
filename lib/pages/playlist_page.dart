@@ -318,11 +318,11 @@ class _PlaylistPageState extends State<PlaylistPage> {
             ),
           ),
 
-          const Positioned(
+          Positioned(
             left: 24,
             right: 24,
             bottom: 24,
-            child: CustomBottomNavBar(),
+            child: CustomBottomNavBar(mediaService: widget.mediaService),
           ),
         ],
       ),
