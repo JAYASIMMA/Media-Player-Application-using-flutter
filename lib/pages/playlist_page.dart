@@ -113,97 +113,31 @@ class _PlaylistPageState extends State<PlaylistPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(
+          _isSelectionMode
+              ? '${_selectedPlaylists.length} Selected'
+              : 'Playlists',
+        ),
+        actions: [
+          if (_isSelectionMode)
+            IconButton(
+              onPressed: () {
+                final provider = Provider.of<PlaylistProvider>(
+                  context,
+                  listen: false,
+                );
+                _deleteSelected(provider);
+              },
+              icon: const Icon(Icons.delete, color: Colors.red),
+            ),
+        ],
+      ),
       body: Stack(
         children: [
           SafeArea(
             child: Column(
               children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: 24,
-                    right: 24,
-                    top: 0,
-                    bottom: 24,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (_isSelectionMode)
-                            Text(
-                              '${_selectedPlaylists.length} Selected',
-                              style: GoogleFonts.ibmPlexSerif(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          else
-                            RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'YOUR ',
-                                    style: GoogleFonts.ibmPlexSerif(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.color,
-                                      letterSpacing: 2,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'PLAYLISTS',
-                                    style: GoogleFonts.ibmPlexSerif(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w300,
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge?.color,
-                                      letterSpacing: 2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          Row(
-                            children: [
-                              if (_isSelectionMode)
-                                IconButton(
-                                  onPressed: () {
-                                    final provider =
-                                        Provider.of<PlaylistProvider>(
-                                          context,
-                                          listen: false,
-                                        );
-                                    _deleteSelected(provider);
-                                  },
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.close),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 2,
-                        width: 60,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ],
-                  ),
-                ),
-
                 Expanded(
                   child: Consumer<PlaylistProvider>(
                     builder: (context, playlistProvider, child) {
