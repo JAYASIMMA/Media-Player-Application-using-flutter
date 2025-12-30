@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AboutUsPage extends StatelessWidget {
   const AboutUsPage({Key? key}) : super(key: key);
@@ -63,7 +62,8 @@ class AboutUsPage extends StatelessWidget {
             Center(
               child: Text(
                 'VERSION 1.0.0',
-                style: GoogleFonts.spaceMono(
+                style: TextStyle(
+                  fontFamily: 'Ndot57',
                   fontSize: 16,
                   color: Colors.grey,
                   letterSpacing: 1,
@@ -78,7 +78,8 @@ class AboutUsPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Nothing Player is a minimalist media player designed with the Nothing OS aesthetic in mind. Experience your music and videos with a clean, distraction-free interface that puts your content first.',
-              style: GoogleFonts.inter(
+              style: TextStyle(
+                fontFamily: 'Ndot57',
                 fontSize: 16,
                 color: Theme.of(context).textTheme.bodyMedium?.color,
                 height: 1.6,
@@ -122,7 +123,8 @@ class AboutUsPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Developed with Flutter\nInspired by Nothing OS Design Language\n\n© 2025 Jayasimma D',
-              style: GoogleFonts.spaceMono(
+              style: TextStyle(
+                fontFamily: 'Ndot57',
                 fontSize: 14,
                 color: Colors.grey,
                 height: 1.8,
@@ -135,7 +137,11 @@ class AboutUsPage extends StatelessWidget {
             _buildSectionTitle(context, 'CONTACT'),
             const SizedBox(height: 16),
             _buildContactItem(context, Icons.email, 'jayasimma1@gmail.com'),
-            _buildContactItem(context, Icons.language, 'www.nothingplayer.com'),
+            _buildContactItem(
+              context,
+              Icons.language,
+              'https://github.com/JAYASIMMA/',
+            ),
             const SizedBox(height: 24),
           ],
         ),
@@ -201,7 +207,8 @@ class AboutUsPage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(
+                    fontFamily: 'Ndot57',
                     fontSize: 14,
                     color: Colors.grey,
                     height: 1.4,
@@ -225,7 +232,8 @@ class AboutUsPage extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             text,
-            style: GoogleFonts.spaceMono(
+            style: TextStyle(
+              fontFamily: 'Ndot57',
               fontSize: 14,
               color: Theme.of(context).textTheme.bodyMedium?.color,
               letterSpacing: 0.5,

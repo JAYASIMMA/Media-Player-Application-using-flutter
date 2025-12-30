@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({Key? key}) : super(key: key);
@@ -30,7 +29,8 @@ class PrivacyPolicyPage extends StatelessWidget {
             Center(
               child: Text(
                 'LAST UPDATED: DECEMBER 2025',
-                style: GoogleFonts.spaceMono(
+                style: TextStyle(
+                  fontFamily: 'Ndot57',
                   fontSize: 12,
                   color: Colors.grey,
                   letterSpacing: 1,
@@ -143,14 +143,19 @@ class PrivacyPolicyPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildContactInfo(context, 'Email', 'jayasimma1@gmail.com'),
-            _buildContactInfo(context, 'Website', 'www.nothingplayer.com'),
+            _buildContactInfo(
+              context,
+              'Website',
+              'https://github.com/JAYASIMMA/',
+            ),
             const SizedBox(height: 48),
 
             // Footer
             Center(
               child: Text(
                 '© 2025 Jayasimma D\nALL RIGHTS RESERVED',
-                style: GoogleFonts.spaceMono(
+                style: TextStyle(
+                  fontFamily: 'Ndot57',
                   fontSize: 12,
                   color: Colors.grey,
                   letterSpacing: 1,
@@ -204,7 +209,8 @@ class PrivacyPolicyPage extends StatelessWidget {
   Widget _buildParagraph(BuildContext context, String text) {
     return Text(
       text,
-      style: GoogleFonts.inter(
+      style: TextStyle(
+        fontFamily: 'Ndot57',
         fontSize: 14,
         color: Theme.of(context).textTheme.bodyMedium?.color,
         height: 1.6,
@@ -231,7 +237,8 @@ class PrivacyPolicyPage extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: GoogleFonts.inter(
+              style: TextStyle(
+                fontFamily: 'Ndot57',
                 fontSize: 14,
                 color: Theme.of(context).textTheme.bodyMedium?.color,
                 height: 1.6,
@@ -251,7 +258,8 @@ class PrivacyPolicyPage extends StatelessWidget {
         children: [
           Text(
             '$label: ',
-            style: GoogleFonts.spaceMono(
+            style: TextStyle(
+              fontFamily: 'Ndot57',
               fontSize: 14,
               color: Colors.grey,
               letterSpacing: 0.5,
@@ -259,7 +267,8 @@ class PrivacyPolicyPage extends StatelessWidget {
           ),
           Text(
             value,
-            style: GoogleFonts.spaceMono(
+            style: TextStyle(
+              fontFamily: 'Ndot57',
               fontSize: 14,
               color: Theme.of(context).textTheme.bodyMedium?.color,
               letterSpacing: 0.5,

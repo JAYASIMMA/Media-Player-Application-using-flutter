@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'pages/home_page.dart';
+
+import 'pages/welcome_page.dart';
 import 'services/theme_provider.dart';
 import 'services/audio_provider.dart';
 
@@ -47,7 +48,7 @@ class MediaPlayerApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           theme: NothingTheme.lightTheme,
           darkTheme: NothingTheme.darkTheme,
-          home: const HomePage(),
+          home: const WelcomePage(),
         );
       },
     );
