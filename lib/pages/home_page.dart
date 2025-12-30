@@ -11,8 +11,7 @@ import '../widgets/playback_time_widget.dart';
 import '../widgets/nothing_widget_container.dart';
 import 'music_page.dart';
 
-import 'settings_page.dart';
-import 'playlist_page.dart';
+import '../widgets/custom_bottom_nav_bar.dart';
 import 'audio_player_page.dart';
 import 'favorites_detail_page.dart';
 import 'album_detail_page.dart';
@@ -411,116 +410,7 @@ class _HomePageState extends State<HomePage> {
             left: 24,
             right: 24,
             bottom: 24,
-            child: Container(
-              height: 70,
-              decoration: BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).scaffoldBackgroundColor.withOpacity(0.9), // Glassmorphism-ish
-                borderRadius: BorderRadius.circular(35),
-                border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.1),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // 1. Favorites
-                  IconButton(
-                    icon: const Icon(Icons.favorite_border),
-                    iconSize: 28,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FavoritesDetailPage(),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // 2. Search
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    iconSize: 28,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    onPressed: () {
-                      showSearch(
-                        context: context,
-                        delegate: MediaSearchDelegate(
-                          musicList: _mediaService.music,
-                          albums: _albums,
-                        ),
-                      );
-                    },
-                  ),
-
-                  // 3. Playlist (Red Plus)
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.secondary, // Red
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.add),
-                      iconSize: 28,
-                      color: Colors.white,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                PlaylistPage(mediaService: _mediaService),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // 4. All Music (Rhythm Symbol)
-                  IconButton(
-                    icon: const Icon(Icons.graphic_eq),
-                    iconSize: 28,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              MusicPage(mediaService: _mediaService),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // 5. Settings
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    iconSize: 28,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SettingsPage()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
+            child: CustomBottomNavBar(),
           ),
         ],
       ),

@@ -5,6 +5,7 @@ import '../services/settings_provider.dart';
 import '../services/audio_provider.dart';
 import 'about_us_page.dart';
 import 'privacy_policy_page.dart';
+import '../widgets/custom_bottom_nav_bar.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -15,77 +16,92 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Settings')),
       body: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
-          return ListView(
+          return Stack(
             children: [
-              ListTile(
-                title: const Text('Theme'),
-                leading: Icon(_getThemeIcon(themeProvider.themeMode)),
-                subtitle: Text(_getThemeText(themeProvider.themeMode)),
-                onTap: () => _showThemeDialog(context, themeProvider),
-              ),
-              Consumer<SettingsProvider>(
-                builder: (context, settingsProvider, child) {
-                  return Column(
-                    children: [
-                      SwitchListTile(
-                        title: const Text('Show Subtitles'),
-                        subtitle: const Text(
-                          'Display subtitles in video player',
-                        ),
-                        secondary: const Icon(Icons.subtitles),
-                        value: settingsProvider.showSubtitles,
-                        onChanged: (value) =>
-                            settingsProvider.toggleSubtitles(value),
-                      ),
-                      ListTile(
-                        title: const Text('Sleep Timer'),
-                        leading: const Icon(Icons.timer),
-                        subtitle: Text(
-                          settingsProvider.sleepTimerDuration != null
-                              ? 'Off in ${settingsProvider.sleepTimerDuration} min'
-                              : 'Off',
-                        ),
-                        onTap: () =>
-                            _showSleepTimerDialog(context, settingsProvider),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const Divider(height: 32),
-              // Information Section
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Text(
-                  'INFORMATION',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.secondary,
-                    letterSpacing: 1.2,
+              ListView(
+                padding: const EdgeInsets.only(bottom: 100),
+                children: [
+                  ListTile(
+                    title: const Text('Theme'),
+                    leading: Icon(_getThemeIcon(themeProvider.themeMode)),
+                    subtitle: Text(_getThemeText(themeProvider.themeMode)),
+                    onTap: () => _showThemeDialog(context, themeProvider),
                   ),
-                ),
+                  Consumer<SettingsProvider>(
+                    builder: (context, settingsProvider, child) {
+                      return Column(
+                        children: [
+                          SwitchListTile(
+                            title: const Text('Show Subtitles'),
+                            subtitle: const Text(
+                              'Display subtitles in video player',
+                            ),
+                            secondary: const Icon(Icons.subtitles),
+                            value: settingsProvider.showSubtitles,
+                            onChanged: (value) =>
+                                settingsProvider.toggleSubtitles(value),
+                          ),
+                          ListTile(
+                            title: const Text('Sleep Timer'),
+                            leading: const Icon(Icons.timer),
+                            subtitle: Text(
+                              settingsProvider.sleepTimerDuration != null
+                                  ? 'Off in ${settingsProvider.sleepTimerDuration} min'
+                                  : 'Off',
+                            ),
+                            onTap: () => _showSleepTimerDialog(
+                              context,
+                              settingsProvider,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const Divider(height: 32),
+                  // Information Section
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Text(
+                      'INFORMATION',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.secondary,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('About Us'),
+                    leading: const Icon(Icons.info_outline),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AboutUsPage()),
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Privacy Policy'),
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PrivacyPolicyPage(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              ListTile(
-                title: const Text('About Us'),
-                leading: const Icon(Icons.info_outline),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AboutUsPage()),
-                ),
-              ),
-              ListTile(
-                title: const Text('Privacy Policy'),
-                leading: const Icon(Icons.privacy_tip_outlined),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()),
-                ),
+              const Positioned(
+                left: 24,
+                right: 24,
+                bottom: 24,
+                child: CustomBottomNavBar(),
               ),
             ],
           );

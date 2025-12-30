@@ -5,6 +5,7 @@ import '../services/playlist_provider.dart';
 import '../services/settings_provider.dart';
 import '../models/media_item.dart';
 import '../pages/audio_player_page.dart';
+import '../widgets/custom_bottom_nav_bar.dart';
 
 class FavoritesDetailPage extends StatefulWidget {
   const FavoritesDetailPage({Key? key}) : super(key: key);
@@ -45,66 +46,83 @@ class _FavoritesDetailPageState extends State<FavoritesDetailPage> {
               ),
             ],
           ),
-          body: favorites.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.favorite_border,
-                        size: 80,
-                        color: Theme.of(
+          body: Stack(
+            children: [
+              favorites.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.favorite_border,
+                            size: 80,
+                            color: Theme.of(
+                              context,
+                            ).iconTheme.color?.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            "No favorites yet",
+                            style: GoogleFonts.spaceMono(
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : settings.isSongGrid
+                  ? GridView.builder(
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: 100, // Padding for nav bar
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      itemCount: favorites.length,
+                      itemBuilder: (context, index) {
+                        final song = favorites[index];
+                        return _buildGridItem(
                           context,
-                        ).iconTheme.color?.withOpacity(0.5),
+                          song,
+                          playlistProvider,
+                          favorites,
+                        );
+                      },
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 100),
+                      itemCount: favorites.length,
+                      separatorBuilder: (context, index) => Divider(
+                        color: Theme.of(context).dividerColor.withOpacity(0.1),
+                        height: 1,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "No favorites yet",
-                        style: GoogleFonts.spaceMono(
-                          color: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.color?.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : settings.isSongGrid
-              ? GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: favorites.length,
-                  itemBuilder: (context, index) {
-                    final song = favorites[index];
-                    return _buildGridItem(
-                      context,
-                      song,
-                      playlistProvider,
-                      favorites,
-                    );
-                  },
-                )
-              : ListView.separated(
-                  itemCount: favorites.length,
-                  separatorBuilder: (context, index) => Divider(
-                    color: Theme.of(context).dividerColor.withOpacity(0.1),
-                    height: 1,
-                  ),
-                  itemBuilder: (context, index) {
-                    final song = favorites[index];
-                    return _buildListItem(
-                      context,
-                      song,
-                      playlistProvider,
-                      favorites,
-                    );
-                  },
-                ),
+                      itemBuilder: (context, index) {
+                        final song = favorites[index];
+                        return _buildListItem(
+                          context,
+                          song,
+                          playlistProvider,
+                          favorites,
+                        );
+                      },
+                    ),
+              const Positioned(
+                left: 24,
+                right: 24,
+                bottom: 24,
+                child: CustomBottomNavBar(),
+              ),
+            ],
+          ),
         );
       },
     );

@@ -5,6 +5,7 @@ import '../models/media_item.dart';
 import '../services/media_service.dart';
 import '../services/settings_provider.dart';
 import 'audio_player_page.dart';
+import '../widgets/custom_bottom_nav_bar.dart';
 
 class MusicPage extends StatefulWidget {
   final MediaService mediaService;
@@ -33,57 +34,76 @@ class _MusicPageState extends State<MusicPage> {
           ),
         ],
       ),
-      body: music.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.music_off, size: 80, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No music found',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+      body: Stack(
+        children: [
+          music.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.music_off, size: 80, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No music found',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Pull down to refresh',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Pull down to refresh',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: () async {
-                await widget.mediaService.loadMedia();
-                setState(() {});
-              },
-              child: settings.isSongGrid
-                  ? GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.75, // Adjust for card height
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
+                )
+              : RefreshIndicator(
+                  onRefresh: () async {
+                    await widget.mediaService.loadMedia();
+                    setState(() {});
+                  },
+                  child: settings.isSongGrid
+                      ? GridView.builder(
+                          padding: const EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            top: 16,
+                            bottom: 100, // Padding for nav bar
                           ),
-                      itemCount: music.length,
-                      itemBuilder: (context, index) {
-                        final audio = music[index];
-                        return _buildGridItem(context, audio);
-                      },
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: music.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 1, indent: 72),
-                      itemBuilder: (context, index) {
-                        final audio = music[index];
-                        return _buildListItem(context, audio);
-                      },
-                    ),
-            ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio:
+                                    0.75, // Adjust for card height
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                          itemCount: music.length,
+                          itemBuilder: (context, index) {
+                            final audio = music[index];
+                            return _buildGridItem(context, audio);
+                          },
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.only(
+                            top: 8,
+                            bottom: 100, // Padding for nav bar
+                          ),
+                          itemCount: music.length,
+                          separatorBuilder: (context, index) =>
+                              const Divider(height: 1, indent: 72),
+                          itemBuilder: (context, index) {
+                            final audio = music[index];
+                            return _buildListItem(context, audio);
+                          },
+                        ),
+                ),
+          const Positioned(
+            left: 24,
+            right: 24,
+            bottom: 24,
+            child: CustomBottomNavBar(),
+          ),
+        ],
+      ),
     );
   }
 
