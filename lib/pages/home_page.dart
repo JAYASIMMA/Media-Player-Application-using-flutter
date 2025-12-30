@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/audio_provider.dart' as Service;
 import '../services/playlist_provider.dart' as PlaylistProv;
 import '../services/theme_provider.dart';
+import '../services/settings_provider.dart';
 import '../services/media_service.dart';
 import '../models/media_item.dart';
 import '../widgets/album_card.dart';
@@ -67,6 +68,16 @@ class _HomePageState extends State<HomePage> {
     final isDark = themeProvider.isDarkMode;
     final totalSongs = _mediaService.music.length;
 
+    // Access SettingsProvider for Smart Heading
+    final settingsProvider = Provider.of<SettingsProvider>(context);
+    final useNdot = settingsProvider.useNdotFont;
+    final headerFont = useNdot
+        ? 'Ndot57'
+        : GoogleFonts.ibmPlexSerif().fontFamily;
+    final subHeaderFont = useNdot
+        ? 'Ndot57'
+        : GoogleFonts.spaceMono().fontFamily;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       // Stack to overlay the custom bottom nav bar
@@ -92,7 +103,8 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               TextSpan(
                                 text: 'NOTHING ',
-                                style: GoogleFonts.ibmPlexSerif(
+                                style: TextStyle(
+                                  fontFamily: headerFont,
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(
@@ -103,7 +115,8 @@ class _HomePageState extends State<HomePage> {
                               ),
                               TextSpan(
                                 text: 'PLAYER',
-                                style: GoogleFonts.ibmPlexSerif(
+                                style: TextStyle(
+                                  fontFamily: headerFont,
                                   fontSize: 28,
                                   fontWeight: FontWeight.w300,
                                   color: Theme.of(
@@ -399,7 +412,8 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Text(
                           "ALBUMS",
-                          style: GoogleFonts.spaceMono(
+                          style: TextStyle(
+                            fontFamily: subHeaderFont,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.0,

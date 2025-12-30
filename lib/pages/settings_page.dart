@@ -44,6 +44,14 @@ class SettingsPage extends StatelessWidget {
                             onChanged: (value) =>
                                 settingsProvider.toggleSubtitles(value),
                           ),
+                          SwitchListTile(
+                            title: const Text('Smart Heading'),
+                            subtitle: const Text('Use N-Dot font for headers'),
+                            secondary: const Icon(Icons.text_fields),
+                            value: settingsProvider.useNdotFont,
+                            onChanged: (value) =>
+                                settingsProvider.toggleNdotFont(value),
+                          ),
                           ListTile(
                             title: const Text('Sleep Timer'),
                             leading: const Icon(Icons.timer),

@@ -58,7 +58,18 @@ class SettingsProvider extends ChangeNotifier {
     _isSongGrid = prefs.getBool('is_song_grid') ?? false;
     _videoLayoutMode = prefs.getInt('video_layout_mode') ?? 0;
     _showSubtitles = prefs.getBool('show_subtitles') ?? false;
+    _useNdotFont = prefs.getBool('use_ndot_font') ?? false;
     notifyListeners();
+  }
+
+  bool _useNdotFont = false;
+  bool get useNdotFont => _useNdotFont;
+
+  Future<void> toggleNdotFont(bool value) async {
+    _useNdotFont = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('use_ndot_font', _useNdotFont);
   }
 
   Future<void> toggleSongView() async {

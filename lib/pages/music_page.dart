@@ -24,7 +24,15 @@ class _MusicPageState extends State<MusicPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("All Music"),
+        title: Text(
+          "All Music",
+          style: TextStyle(
+            fontFamily: settings.useNdotFont ? 'Ndot57' : null,
+            fontWeight: settings.useNdotFont
+                ? FontWeight.bold
+                : FontWeight.normal,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(settings.isSongGrid ? Icons.view_list : Icons.grid_view),
