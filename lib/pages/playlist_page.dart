@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../services/playlist_provider.dart';
 import '../services/media_service.dart';
+import '../services/settings_provider.dart';
 import '../widgets/nothing_widget_container.dart';
 import 'playlist_detail_page.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
@@ -111,6 +112,7 @@ class _PlaylistPageState extends State<PlaylistPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -118,6 +120,12 @@ class _PlaylistPageState extends State<PlaylistPage> {
           _isSelectionMode
               ? '${_selectedPlaylists.length} Selected'
               : 'Playlists',
+          style: TextStyle(
+            fontFamily: settings.useNdotFont ? 'Ndot57' : null,
+            fontWeight: settings.useNdotFont
+                ? FontWeight.bold
+                : FontWeight.normal,
+          ),
         ),
         actions: [
           if (_isSelectionMode)

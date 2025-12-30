@@ -12,6 +12,7 @@ import '../widgets/playback_time_widget.dart';
 import '../widgets/nothing_widget_container.dart';
 import 'music_page.dart';
 
+import 'package:flutter/cupertino.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import 'audio_player_page.dart';
 import 'favorites_detail_page.dart';
@@ -19,6 +20,7 @@ import 'album_detail_page.dart';
 import 'videos_page.dart';
 import 'folders_page.dart';
 import 'playlist_page.dart'; // Ensure this is imported for navigation
+import 'settings_page.dart';
 import '../delegates/media_search_delegate.dart';
 
 class HomePage extends StatefulWidget {
@@ -95,44 +97,79 @@ class _HomePageState extends State<HomePage> {
                       top: 15,
                       bottom: 10,
                     ),
-                    child: Column(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'NOTHING ',
-                                style: TextStyle(
-                                  fontFamily: headerFont,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
-                                  letterSpacing: 2,
-                                ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'NOTHING ',
+                                    style: TextStyle(
+                                      fontFamily: headerFont,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'PLAYER',
+                                    style: TextStyle(
+                                      fontFamily: headerFont,
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w300,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodyLarge?.color,
+                                      letterSpacing: 2,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              TextSpan(
-                                text: 'PLAYER',
-                                style: TextStyle(
-                                  fontFamily: headerFont,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w300,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.bodyLarge?.color,
-                                  letterSpacing: 2,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 2,
+                              width: 60,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
+                        // Settings Icon
                         Container(
-                          height: 2,
-                          width: 60,
-                          color: Theme.of(context).colorScheme.secondary,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.1),
+                              width: 1,
+                            ),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              CupertinoIcons.settings,
+                              color: Theme.of(context).colorScheme.onSurface,
+                              size: 24,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      SettingsPage(mediaService: _mediaService),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ],
                     ),

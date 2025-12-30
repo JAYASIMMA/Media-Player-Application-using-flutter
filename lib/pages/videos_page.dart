@@ -27,7 +27,17 @@ class _VideosPageState extends State<VideosPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(title: const Text('Videos')),
+      appBar: AppBar(
+        title: Text(
+          'Videos',
+          style: TextStyle(
+            fontFamily: settings.useNdotFont ? 'Ndot57' : null,
+            fontWeight: settings.useNdotFont
+                ? FontWeight.bold
+                : FontWeight.normal,
+          ),
+        ),
+      ),
       body: Column(
         children: [
           // Layout Toggle Header
