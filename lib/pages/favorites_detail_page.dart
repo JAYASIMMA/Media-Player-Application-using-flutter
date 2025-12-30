@@ -32,10 +32,15 @@ class _FavoritesDetailPageState extends State<FavoritesDetailPage> {
             iconTheme: Theme.of(context).iconTheme,
             title: Text(
               "Favorites",
-              style: GoogleFonts.notoSans(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: FontWeight.bold,
-              ),
+              style: settings.useNdotFont
+                  ? const TextStyle(
+                      fontFamily: 'Ndot57',
+                      fontWeight: FontWeight.bold,
+                    )
+                  : GoogleFonts.notoSans(
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                      fontWeight: FontWeight.bold,
+                    ),
             ),
             actions: [
               IconButton(

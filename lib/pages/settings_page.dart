@@ -15,8 +15,19 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: Text(
+          'Settings',
+          style: TextStyle(
+            fontFamily: settings.useNdotFont ? 'Ndot57' : null,
+            fontWeight: settings.useNdotFont
+                ? FontWeight.bold
+                : FontWeight.normal,
+          ),
+        ),
+      ),
       body: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return Stack(

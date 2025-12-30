@@ -30,7 +30,12 @@ class _AlbumDetailPageState extends State<AlbumDetailPage> {
       appBar: AppBar(
         title: Text(
           widget.albumName,
-          style: GoogleFonts.notoSans(fontWeight: FontWeight.bold),
+          style: settings.useNdotFont
+              ? const TextStyle(
+                  fontFamily: 'Ndot57',
+                  fontWeight: FontWeight.bold,
+                )
+              : GoogleFonts.notoSans(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(

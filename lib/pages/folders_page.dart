@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/settings_provider.dart';
 import '../services/media_service.dart';
 import 'folder_content_page.dart';
 
@@ -29,7 +31,21 @@ class FoldersPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(title: const Text('Folders')),
+      appBar: AppBar(
+        title: Consumer<SettingsProvider>(
+          builder: (context, settings, child) {
+            return Text(
+              'Folders',
+              style: TextStyle(
+                fontFamily: settings.useNdotFont ? 'Ndot57' : null,
+                fontWeight: settings.useNdotFont
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+              ),
+            );
+          },
+        ),
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: folders.length,
