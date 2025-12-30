@@ -15,6 +15,9 @@ import '../widgets/custom_bottom_nav_bar.dart';
 import 'audio_player_page.dart';
 import 'favorites_detail_page.dart';
 import 'album_detail_page.dart';
+import 'videos_page.dart';
+import 'folders_page.dart';
+import 'playlist_page.dart'; // Ensure this is imported for navigation
 import '../delegates/media_search_delegate.dart';
 
 class HomePage extends StatefulWidget {
@@ -334,6 +337,57 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
 
+                // Library Section (Videos, Folders, Playlists)
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildLibraryItem(
+                          context,
+                          'Videos',
+                          Icons.play_circle_outline,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  VideosPage(mediaService: _mediaService),
+                            ),
+                          ),
+                        ),
+                        _buildLibraryItem(
+                          context,
+                          'Folders',
+                          Icons.folder_open,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  FoldersPage(mediaService: _mediaService),
+                            ),
+                          ),
+                        ),
+                        _buildLibraryItem(
+                          context,
+                          'Playlists',
+                          Icons.queue_music,
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  PlaylistPage(mediaService: _mediaService),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 // 2. Section Header
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
@@ -424,6 +478,40 @@ class _HomePageState extends State<HomePage> {
         builder: (context) => AlbumDetailPage(
           albumName: album['name'],
           songs: List<MediaItem>.from(album['songs']),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLibraryItem(
+    BuildContext context,
+    String label,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: NothingWidgetContainer(
+          onTap: onTap,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 28,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
