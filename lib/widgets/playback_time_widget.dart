@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import '../services/audio_provider.dart';
 
 class PlaybackTimeWidget extends StatelessWidget {
@@ -29,13 +30,15 @@ class PlaybackTimeWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      Text(
+                      AutoSizeText(
                         hasAudio ? posString : "00:00",
                         style: GoogleFonts.ibmPlexSerif(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                           height: 1.0,
                         ),
+                        maxLines: 1,
+                        minFontSize: 16,
                       ),
                       Text(
                         ' / ',
