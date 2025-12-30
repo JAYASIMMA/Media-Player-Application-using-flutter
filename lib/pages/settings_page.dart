@@ -7,8 +7,11 @@ import 'about_us_page.dart';
 import 'privacy_policy_page.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 
+import '../services/media_service.dart';
+
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  final MediaService? mediaService;
+  const SettingsPage({Key? key, this.mediaService}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -97,11 +100,11 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ],
               ),
-              const Positioned(
+              Positioned(
                 left: 24,
                 right: 24,
                 bottom: 24,
-                child: CustomBottomNavBar(),
+                child: CustomBottomNavBar(mediaService: mediaService),
               ),
             ],
           );

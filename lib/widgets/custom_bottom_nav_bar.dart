@@ -10,7 +10,9 @@ import '../pages/settings_page.dart';
 import '../pages/audio_player_page.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
-  const CustomBottomNavBar({Key? key}) : super(key: key);
+  final MediaService? mediaService;
+
+  const CustomBottomNavBar({Key? key, this.mediaService}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -96,24 +98,31 @@ class CustomBottomNavBar extends StatelessWidget {
             iconSize: 28,
             color: Theme.of(context).colorScheme.onSurface,
             onPressed: () async {
-              // We need instances of music and albums for search.
-              // Since we are in a disconnected widget, we might simply create a service instance
-              // and load data if needed, or better:
-              // If we can't get data easily, we might show empty search or try to load.
-              // A hacky detail: we will instantiate MediaService locally.
-              final ms = MediaService();
-              await ms.loadMedia(); // This might be slow.
-              // Ideally this data is in a Provider.
-              // I'll check if I can modify main.dart to provide MediaService.
-              // For now, let's just push search with whatever we can get.
-              if (context.mounted) {
-                showSearch(
-                  context: context,
-                  delegate: MediaSearchDelegate(
-                    musicList: ms.music,
-                    albums: ms.getAlbums(),
-                  ),
-                );
+              if (mediaService != null) {
+                if (mediaService!.music.isEmpty) {
+                  await mediaService!.loadMedia();
+                }
+                if (context.mounted) {
+                  showSearch(
+                    context: context,
+                    delegate: MediaSearchDelegate(
+                      musicList: mediaService!.music,
+                      albums: mediaService!.getAlbums(),
+                    ),
+                  );
+                }
+              } else {
+                final ms = MediaService();
+                await ms.loadMedia();
+                if (context.mounted) {
+                  showSearch(
+                    context: context,
+                    delegate: MediaSearchDelegate(
+                      musicList: ms.music,
+                      albums: ms.getAlbums(),
+                    ),
+                  );
+                }
               }
             },
           ),
@@ -131,11 +140,10 @@ class CustomBottomNavBar extends StatelessWidget {
               iconSize: 28,
               color: Colors.white,
               onPressed: () {
-                final ms = MediaService(); // New instance
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => PlaylistPage(mediaService: ms),
+                    builder: (_) => PlaylistPage(mediaService: mediaService),
                   ),
                 );
               },
@@ -148,11 +156,11 @@ class CustomBottomNavBar extends StatelessWidget {
             iconSize: 28,
             color: Theme.of(context).colorScheme.onSurface,
             onPressed: () {
-              final ms = MediaService(); // New instance
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MusicPage(mediaService: ms),
+                  builder: (context) =>
+                      MusicPage(mediaService: mediaService!), // Force loaded
                 ),
               );
             },
@@ -166,7 +174,9 @@ class CustomBottomNavBar extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const SettingsPage()),
+                MaterialPageRoute(
+                  builder: (_) => SettingsPage(mediaService: mediaService),
+                ),
               );
             },
           ),
