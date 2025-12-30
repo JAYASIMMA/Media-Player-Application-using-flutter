@@ -122,6 +122,11 @@ class AudioProvider extends ChangeNotifier {
     }
   }
 
+  // Helper for starting playback from search/lists
+  Future<void> setPlaylist(List<model.MediaItem> newPlaylist, int index) async {
+    await play(newPlaylist[index], newPlaylist);
+  }
+
   // TODO: Fix Album Art URI.
   // We need a path. Models might have art bytes but not path.
   // We should rely on MediaService to provide paths or cache.

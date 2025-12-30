@@ -10,8 +10,7 @@ import '../widgets/album_card.dart';
 import '../widgets/playback_time_widget.dart';
 import '../widgets/nothing_widget_container.dart';
 import 'music_page.dart';
-import 'videos_page.dart';
-import 'folders_page.dart';
+
 import 'settings_page.dart';
 import 'playlist_page.dart';
 import 'audio_player_page.dart';
