@@ -94,15 +94,15 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.only(
                       left: 24,
                       right: 24,
-                      top: 25,
+                      top: 15,
                       bottom: 10,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             RichText(
                               text: TextSpan(
@@ -134,42 +134,33 @@ class _HomePageState extends State<HomePage> {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Container(
-                              height: 2,
-                              width: 60,
-                              color: Theme.of(context).colorScheme.secondary,
+                            // Settings Icon
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: Icon(
+                                CupertinoIcons.settings,
+                                color: Theme.of(context).colorScheme.onSurface,
+                                size: 24,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => SettingsPage(
+                                      mediaService: _mediaService,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
-                        // Settings Icon
+                        const SizedBox(height: 8),
                         Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.1),
-                              width: 1,
-                            ),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              CupertinoIcons.settings,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              size: 24,
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      SettingsPage(mediaService: _mediaService),
-                                ),
-                              );
-                            },
-                          ),
+                          height: 2,
+                          width: 60,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                       ],
                     ),
