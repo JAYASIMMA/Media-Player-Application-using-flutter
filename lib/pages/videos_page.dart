@@ -25,48 +25,52 @@ class _VideosPageState extends State<VideosPage> {
     // Provider stores int: 0=List, 1=Grid, 2=Large.
     final currentMode = VideoLayoutMode.values[settings.videoLayoutMode];
 
-    return Column(
-      children: [
-        // Layout Toggle Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _buildLayoutToggle(
-                Icons.view_list,
-                VideoLayoutMode.list,
-                settings,
-              ),
-              const SizedBox(width: 8),
-              _buildLayoutToggle(
-                Icons.grid_view,
-                VideoLayoutMode.grid,
-                settings,
-              ),
-              const SizedBox(width: 8),
-              _buildLayoutToggle(
-                Icons.crop_square,
-                VideoLayoutMode.large,
-                settings,
-              ),
-            ],
-          ),
-        ),
-
-        // Video List/Grid
-        Expanded(
-          child: videos.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: () async {
-                    await widget.mediaService.loadMedia();
-                    setState(() {});
-                  },
-                  child: _buildVideoView(videos, currentMode),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text('Videos')),
+      body: Column(
+        children: [
+          // Layout Toggle Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _buildLayoutToggle(
+                  Icons.view_list,
+                  VideoLayoutMode.list,
+                  settings,
                 ),
-        ),
-      ],
+                const SizedBox(width: 8),
+                _buildLayoutToggle(
+                  Icons.grid_view,
+                  VideoLayoutMode.grid,
+                  settings,
+                ),
+                const SizedBox(width: 8),
+                _buildLayoutToggle(
+                  Icons.crop_square,
+                  VideoLayoutMode.large,
+                  settings,
+                ),
+              ],
+            ),
+          ),
+
+          // Video List/Grid
+          Expanded(
+            child: videos.isEmpty
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: () async {
+                      await widget.mediaService.loadMedia();
+                      setState(() {});
+                    },
+                    child: _buildVideoView(videos, currentMode),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
