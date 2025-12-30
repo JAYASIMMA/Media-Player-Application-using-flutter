@@ -11,7 +11,8 @@ class PrivacyPolicyPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'PRIVACY POLICY',
-          style: GoogleFonts.dotGothic16(
+          style: TextStyle(
+            fontFamily: 'Ndot57',
             fontSize: 24,
             color: Theme.of(context).textTheme.bodyLarge?.color,
             letterSpacing: 2,
@@ -141,14 +142,14 @@ class PrivacyPolicyPage extends StatelessWidget {
               'If you have any questions about this Privacy Policy, please contact us at:',
             ),
             const SizedBox(height: 12),
-            _buildContactInfo(context, 'Email', 'privacy@nothingplayer.com'),
+            _buildContactInfo(context, 'Email', 'jayasimma1@gmail.com'),
             _buildContactInfo(context, 'Website', 'www.nothingplayer.com'),
             const SizedBox(height: 48),
 
             // Footer
             Center(
               child: Text(
-                '© 2025 NOTHING PLAYER\nALL RIGHTS RESERVED',
+                '© 2025 Jayasimma D\nALL RIGHTS RESERVED',
                 style: GoogleFonts.spaceMono(
                   fontSize: 12,
                   color: Colors.grey,
@@ -178,7 +179,8 @@ class PrivacyPolicyPage extends StatelessWidget {
       ),
       child: Text(
         title,
-        style: GoogleFonts.dotGothic16(
+        style: TextStyle(
+          fontFamily: 'Ndot57',
           fontSize: 18,
           color: Theme.of(context).colorScheme.secondary,
           letterSpacing: 2,
@@ -190,7 +192,8 @@ class PrivacyPolicyPage extends StatelessWidget {
   Widget _buildSubsection(BuildContext context, String title) {
     return Text(
       title,
-      style: GoogleFonts.dotGothic16(
+      style: TextStyle(
+        fontFamily: 'Ndot57',
         fontSize: 16,
         color: Theme.of(context).textTheme.bodyLarge?.color,
         letterSpacing: 1,

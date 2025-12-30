@@ -11,7 +11,8 @@ class AboutUsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'ABOUT US',
-          style: GoogleFonts.dotGothic16(
+          style: TextStyle(
+            fontFamily: 'Ndot57',
             fontSize: 24,
             color: Theme.of(context).textTheme.bodyLarge?.color,
             letterSpacing: 2,
@@ -47,7 +48,8 @@ class AboutUsPage extends StatelessWidget {
             Center(
               child: Text(
                 'NOTHING PLAYER',
-                style: GoogleFonts.dotGothic16(
+                style: TextStyle(
+                  fontFamily: 'Ndot57',
                   fontSize: 32,
                   color: Theme.of(context).textTheme.bodyLarge?.color,
                   letterSpacing: 3,
@@ -119,7 +121,7 @@ class AboutUsPage extends StatelessWidget {
             _buildSectionTitle(context, 'CREDITS'),
             const SizedBox(height: 16),
             Text(
-              'Developed with Flutter\nInspired by Nothing OS Design Language\n\n© 2025 Nothing Player',
+              'Developed with Flutter\nInspired by Nothing OS Design Language\n\n© 2025 Jayasimma D',
               style: GoogleFonts.spaceMono(
                 fontSize: 14,
                 color: Colors.grey,
@@ -132,11 +134,7 @@ class AboutUsPage extends StatelessWidget {
             // Contact Section
             _buildSectionTitle(context, 'CONTACT'),
             const SizedBox(height: 16),
-            _buildContactItem(
-              context,
-              Icons.email,
-              'support@nothingplayer.com',
-            ),
+            _buildContactItem(context, Icons.email, 'jayasimma1@gmail.com'),
             _buildContactItem(context, Icons.language, 'www.nothingplayer.com'),
             const SizedBox(height: 24),
           ],
@@ -158,7 +156,8 @@ class AboutUsPage extends StatelessWidget {
       ),
       child: Text(
         title,
-        style: GoogleFonts.dotGothic16(
+        style: TextStyle(
+          fontFamily: 'Ndot57',
           fontSize: 20,
           color: Theme.of(context).colorScheme.secondary,
           letterSpacing: 2,
@@ -192,7 +191,8 @@ class AboutUsPage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.dotGothic16(
+                  style: TextStyle(
+                    fontFamily: 'Ndot57',
                     fontSize: 16,
                     color: Theme.of(context).textTheme.bodyLarge?.color,
                     letterSpacing: 1,

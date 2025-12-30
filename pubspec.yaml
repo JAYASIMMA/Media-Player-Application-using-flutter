@@ -40,6 +40,11 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  fonts:
+    - family: Ndot57
+      fonts:
+        - asset: assets/fonts/Ndot 57 Aligned.ttf
+
 # App Branding Configuration
 flutter_launcher_icons:
   android: true
