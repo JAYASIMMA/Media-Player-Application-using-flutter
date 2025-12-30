@@ -270,7 +270,9 @@ class _HomePageState extends State<HomePage> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                const FavoritesDetailPage(),
+                                                FavoritesDetailPage(
+                                                  mediaService: _mediaService,
+                                                ),
                                           ),
                                         );
                                       },
@@ -464,7 +466,7 @@ class _HomePageState extends State<HomePage> {
             left: 24,
             right: 24,
             bottom: 24,
-            child: CustomBottomNavBar(),
+            child: CustomBottomNavBar(mediaService: _mediaService),
           ),
         ],
       ),

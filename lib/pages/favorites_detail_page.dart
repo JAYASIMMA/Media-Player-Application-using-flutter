@@ -6,9 +6,11 @@ import '../services/settings_provider.dart';
 import '../models/media_item.dart';
 import '../pages/audio_player_page.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
+import '../services/media_service.dart';
 
 class FavoritesDetailPage extends StatefulWidget {
-  const FavoritesDetailPage({Key? key}) : super(key: key);
+  final MediaService? mediaService;
+  const FavoritesDetailPage({Key? key, this.mediaService}) : super(key: key);
 
   @override
   State<FavoritesDetailPage> createState() => _FavoritesDetailPageState();
@@ -115,11 +117,11 @@ class _FavoritesDetailPageState extends State<FavoritesDetailPage> {
                         );
                       },
                     ),
-              const Positioned(
+              Positioned(
                 left: 24,
                 right: 24,
                 bottom: 24,
-                child: CustomBottomNavBar(),
+                child: CustomBottomNavBar(mediaService: widget.mediaService),
               ),
             ],
           ),

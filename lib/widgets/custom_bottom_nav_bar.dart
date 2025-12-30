@@ -86,7 +86,8 @@ class CustomBottomNavBar extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const FavoritesDetailPage(),
+                  builder: (context) =>
+                      FavoritesDetailPage(mediaService: mediaService),
                 ),
               );
             },
