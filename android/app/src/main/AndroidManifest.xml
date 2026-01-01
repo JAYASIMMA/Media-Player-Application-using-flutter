@@ -43,11 +43,11 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
         </service>
         
         <meta-data android:name="com.ryanheise.audioservice.notification.logo"
-            android:resource="@mipmap/ic_launcher" />
+            android:resource="@drawable/ic_launcher" />
+
         <meta-data android:name="com.ryanheise.audioservice.notification.channel_name"
             android:value="Music Playback" />
         <meta-data android:name="com.ryanheise.audioservice.notification.channel_description"
