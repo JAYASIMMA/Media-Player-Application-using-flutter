@@ -47,7 +47,7 @@
         </service>
         
         <meta-data android:name="com.ryanheise.audioservice.notification.logo"
-            android:resource="@drawable/ic_notification" />
+            android:resource="@mipmap/ic_launcher" />
 
         <meta-data android:name="com.ryanheise.audioservice.notification.channel_name"
             android:value="Music Playback" />

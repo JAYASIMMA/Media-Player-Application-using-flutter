@@ -25,7 +25,7 @@ Future<void> main() async {
     androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
     androidNotificationChannelName: 'Audio playback',
     androidNotificationOngoing: true,
-    androidNotificationIcon: 'ic_notification',
+    androidNotificationIcon: 'mipmap/ic_launcher',
   );
 
   runApp(
