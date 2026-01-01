@@ -276,6 +276,9 @@ class MediaService {
             artist: entry['artist'],
             album: entry['album'],
             albumArt: artBytes,
+            artUri: entry['artPath'] != null
+                ? Uri.file(entry['artPath']).toString()
+                : null,
           );
         }
       }
@@ -391,6 +394,7 @@ class MediaService {
       artist: artist ?? (isVideo ? null : 'Unknown Artist'),
       album: album ?? (isVideo ? null : 'Unknown Album'),
       albumArt: albumArt,
+      artUri: cachedArtPath != null ? Uri.file(cachedArtPath).toString() : null,
     );
   }
 

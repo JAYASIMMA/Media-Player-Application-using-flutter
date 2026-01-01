@@ -98,15 +98,7 @@ class AudioProvider extends ChangeNotifier {
           album: item.album ?? "Unknown Album",
           title: item.name,
           artist: item.artist ?? "Unknown Artist",
-          artUri:
-              null, // item.albumArt is bytes, but we need a file path for notification.
-          // TODO: Implement cache file creation or use MediaService cache path.
-          // Note: Passing bytes is hard.
-          // If we have no file path for art, we usually pass null or a placeholder.
-          // just_audio_background ideally needs a URI.
-          // For now, let's skip art URI if we don't have a reliable file path,
-          // OR verify if we can pass a data URI (usually too large).
-          // We'll leave artUri null if not checking custom cache paths carefully.
+          artUri: item.artUri != null ? Uri.parse(item.artUri!) : null,
         ),
       );
     }).toList();

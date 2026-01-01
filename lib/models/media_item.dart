@@ -8,6 +8,7 @@ class MediaItem {
   final String size;
   final Uint8List? thumbnail;
   final Uint8List? albumArt;
+  final String? artUri;
   final String? artist;
   final String? album;
 
@@ -18,6 +19,7 @@ class MediaItem {
     required this.size,
     this.thumbnail,
     this.albumArt,
+    this.artUri,
     this.artist,
     this.album,
   });
@@ -38,6 +40,7 @@ class MediaItem {
     String? duration,
     String? size,
     Uint8List? albumArt,
+    String? artUri,
     String? artist,
     String? album,
   }) {
@@ -47,6 +50,7 @@ class MediaItem {
       duration: duration ?? this.duration,
       size: size ?? this.size,
       albumArt: albumArt ?? this.albumArt,
+      artUri: artUri ?? this.artUri,
       artist: artist ?? this.artist,
       album: album ?? this.album,
     );
