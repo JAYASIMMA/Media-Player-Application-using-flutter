@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
 
 class MediaService {
   List<MediaItem> videos = [];
@@ -357,9 +358,17 @@ class MediaService {
     // Save Art to Disk for Cache
     String? cachedArtPath;
     if (albumArt != null) {
-      // Don't save if it's already a custom thumb path, just usage logic.
-      // But for consistency let's save our own cache copy or just use the bytes?
-      // Saving bytes to disk speeds up next read vs decoding video again.
+      try {
+        final image = img.decodeImage(albumArt!);
+        if (image != null && (image.width > 300 || image.height > 300)) {
+          final resized = img.copyResize(image, width: 300);
+          albumArt = Uint8List.fromList(img.encodeJpg(resized, quality: 70));
+        }
+      } catch (e) {
+        print("Error resizing art: $e");
+      }
+
+      // Save Art to Disk for Cache
       try {
         final appDir = await getApplicationDocumentsDirectory();
         final thumbDir = Directory(path.join(appDir.path, 'thumbnails'));
@@ -368,7 +377,7 @@ class MediaService {
         // Use hash or filename as key
         final artFileName = '${file.path.hashCode}_v1.jpg';
         final artFile = File(path.join(thumbDir.path, artFileName));
-        await artFile.writeAsBytes(albumArt);
+        await artFile.writeAsBytes(albumArt!);
         cachedArtPath = artFile.path;
       } catch (e) {
         print("Failed to save cached art: $e");

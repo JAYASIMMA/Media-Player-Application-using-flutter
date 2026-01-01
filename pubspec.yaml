@@ -28,6 +28,7 @@ dependencies:
   just_audio_background: ^0.0.1-beta.17
   auto_size_text: ^3.0.0
   auto_size_text_field: ^2.2.4
+  image: ^4.7.2
 
 dev_dependencies:
   flutter_test:
